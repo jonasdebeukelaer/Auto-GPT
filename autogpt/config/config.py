@@ -135,6 +135,13 @@ class Config(metaclass=Singleton):
         self.selenium_web_browser = os.getenv("USE_WEB_BROWSER", "chrome")
         self.selenium_headless = os.getenv("HEADLESS_BROWSER", "True") == "True"
 
+        # Coinbase settings
+        self.enable_coinbase = os.getenv("ENABLE_COINBASE", "False") == "True"
+        if self.enable_coinbase:
+            self.coinbase_api_key = os.getenv("COINBASE_API_KEY")
+            self.coinbase_api_secret = os.getenv("COINBASE_API_SECRET")
+            self.coinbase_is_sandbox = os.getenv("COINBASE_IS_SANDBOX").lower() == "true"
+
         # User agent header to use when making HTTP requests
         # Some websites might just completely deny request with an error code if
         # no user agent was found.
