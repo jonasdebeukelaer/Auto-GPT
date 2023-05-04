@@ -159,3 +159,8 @@ openai/
 
 # news
 CURRENT_BULLETIN.md
+
+# custom
+milvus/volumes/
+venv/
+chrome_settings/profile/
