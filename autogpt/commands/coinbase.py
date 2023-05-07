@@ -21,11 +21,6 @@ BASE_URL = "https://api.coinbase.com/api/v3/brokerage"
 
 s = Session()
 
-fake_wallet = {
-    "GBP": 100.0,
-    "BTC": 0.0,
-}
-
 
 def add_headers(request: Request) -> Request:
     timestamp = str(int(time.time()))
@@ -49,13 +44,10 @@ def make_request(request: Request) -> Response:
     "get_wallet_balances",
     "Get available balances in coinbase wallet",
     "",
-    CFG.enable_coinbase,
-    "enable coinbase in config",
+    CFG.enable_coinbase and not CFG.coinbase_is_sandbox,
+    "enable coinbase in config and disable sandbox",
 )
 def get_all_wallets() -> str:
-    if CFG.coinbase_is_sandbox:
-        return f"All wallets information: {fake_wallet}"
-
     request = Request('GET', join(BASE_URL, 'accounts'))
     request.data = ''
     resp = make_request(request)
@@ -70,15 +62,12 @@ def get_all_wallets() -> str:
     "get_wallet_balance",
     "Get available balance in coinbase wallet for given cryptocurrency",
     '"ticker": "<ticker>"',
-    CFG.enable_coinbase,
-    "enable coinbase in config",
+    CFG.enable_coinbase and not CFG.coinbase_is_sandbox,
+    "enable coinbase in config and disable sandbox",
 )
 def get_wallet_for(ticker: str) -> str:
     if regex.match(r"^[A-Z]{3}$", ticker) is None:
         return f"Invalid ticker: {ticker}"
-
-    if CFG.coinbase_is_sandbox:
-        return f"{ticker} wallet information: {fake_wallet[ticker.upper()]}"
 
     request = Request('GET', join(BASE_URL, 'accounts'))
     request.data = ''
@@ -100,15 +89,12 @@ def get_wallet_for(ticker: str) -> str:
     "get_product_info",
     "Get cryptocurrency product info including price in GBP",
     '"product_id": "<product_id>"',
-    CFG.enable_coinbase,
-    "enable coinbase in config",
+    CFG.enable_coinbase and not CFG.coinbase_is_sandbox,
+    "enable coinbase in config and disable sandbox",
 )
 def get_product_info(product_id: str) -> str:
     if regex.match(r"^[A-Z]{3}-[A-Z]{3}$", product_id) is None:
         return f"Invalid product id: {product_id}"
-
-    if CFG.coinbase_is_sandbox:
-        return "Product information: {'BTC-GBP': '23000.2'}"
 
     request = Request('GET', join(BASE_URL, 'products', product_id))
     request.data = ''
@@ -124,46 +110,44 @@ def get_product_info(product_id: str) -> str:
     "create_order",
     "Create a buy or sell order",
     '"side": "<side>", "product_id": "<product_id>", "quote_size": "<quote_size>"',
-    CFG.enable_coinbase,
-    "enable coinbase in config",
+    CFG.enable_coinbase and not CFG.coinbase_is_sandbox,
+    "enable coinbase in config and disable sandbox",
 )
 def create_order(side: str, product_id: str, quote_size: str) -> str:
     if regex.match(r"^[A-Z]{3}-[A-Z]{3}$", product_id) is None:
-        return f"Invalid product id: {product_id}"
+        return f"Invalid product id: {product_id}. Should have form 'XXX-GBP'"
 
     side = side.upper()
     if side not in ["BUY", "SELL"]:
         return f"Invalid side: {side} should be one of [BUY, SELL]"
 
-    if not quote_size.replace(".", "").isnumeric() or float(quote_size) <= 0:
-        return f"Invalid quote size: {quote_size}"
+    if type(quote_size) != str or not quote_size.replace(".", "").isnumeric():
+        return f"Invalid quote size, should be a string representing a float: {quote_size}"
     quote_size = float(quote_size)
 
     # TEMP SAFETY CHECK
     if quote_size > 20:
-        return f"Trade blocked! Quote size too large: {quote_size}, only orders up to £20 are allowed"
-
-    if CFG.coinbase_is_sandbox:
-        # don't actually execute the order
-        fake_wallet["GBP"] -= quote_size
-        fake_wallet["BTC"] += quote_size / 1000
-
-        with open("trades.csv", "a") as f:
-            f.write(f"{side},{product_id},{quote_size}\n")
-
-        return f"Order created: {side} {quote_size} {product_id}"
+        return f"Trade blocked! Quote size too large: £{quote_size}, only orders up to £20 are allowed"
 
     request = Request('POST', join(BASE_URL, 'orders'))
     request.data = json.dumps({
         "client_order_id": str(int(time.time())),
         "product_id": product_id,
         "side": side,
-        "quote_size": quote_size,
+        "order_configuration": {
+            "market_market_ioc": {
+                "quote_size": str(quote_size),
+            }
+        }
     })
     resp = make_request(request)
 
     if not resp.ok:
         return f"Error creating order: {resp.text}"
+
+    print("Sleeping for 1h after making this trade successfully...")
+    time.sleep(60 * 60)
+    print("Waking up again")
 
     return f"Order created: {resp.json()}"
 
@@ -172,4 +156,4 @@ def create_order(side: str, product_id: str, quote_size: str) -> str:
 if __name__ == '__main__':
     print(get_wallet_for('GBP'))
     print(get_product_info('BTC-USD'))
-    print(create_order('buy', 'BTC-GBP', '0.001'))
+    print(create_order('buy', 'BTC-GBP', '1.0'))
