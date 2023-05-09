@@ -19,6 +19,9 @@ CFG = Config()
 
 BASE_URL = "https://api.coinbase.com/api/v3/brokerage"
 
+ENABLE = CFG.enable_coinbase and not CFG.coinbase_is_sandbox
+ENABLE_MSG = "Enable coinbase in config and disable sandbox"
+
 s = Session()
 
 
@@ -44,8 +47,8 @@ def make_request(request: Request) -> Response:
     "get_wallet_balances",
     "Get available balances in coinbase wallet",
     "",
-    CFG.enable_coinbase and not CFG.coinbase_is_sandbox,
-    "enable coinbase in config and disable sandbox",
+    ENABLE,
+    ENABLE_MSG,
 )
 def get_all_wallets() -> str:
     request = Request('GET', join(BASE_URL, 'accounts'))
@@ -62,8 +65,8 @@ def get_all_wallets() -> str:
     "get_wallet_balance",
     "Get available balance in coinbase wallet for given cryptocurrency",
     '"ticker": "<ticker>"',
-    CFG.enable_coinbase and not CFG.coinbase_is_sandbox,
-    "enable coinbase in config and disable sandbox",
+    ENABLE,
+    ENABLE_MSG,
 )
 def get_wallet_for(ticker: str) -> str:
     if regex.match(r"^[A-Z]{3}$", ticker) is None:
@@ -86,11 +89,33 @@ def get_wallet_for(ticker: str) -> str:
 
 
 @command(
+    "get_products",
+    "Get a list of the available currency pairs for trading.",
+    "",
+    ENABLE,
+    ENABLE_MSG,
+)
+def get_products() -> str:
+    request = Request('GET', join(BASE_URL, 'products'))
+    resp = make_request(request)
+
+    if not resp.ok:
+        return f"Error getting available products: {resp.text}"
+
+    products = []
+    for details in resp.json()["products"]:
+        if details["product_id"].endswith("GBP"):
+            products.append(details["product_id"] + " (" + details["base_name"] + " - " + details["quote_name"] + ")")
+
+    return f"Available products: {products}"
+
+
+@command(
     "get_product_info",
     "Get cryptocurrency product info including price in GBP",
     '"product_id": "<product_id>"',
-    CFG.enable_coinbase and not CFG.coinbase_is_sandbox,
-    "enable coinbase in config and disable sandbox",
+    ENABLE,
+    ENABLE_MSG,
 )
 def get_product_info(product_id: str) -> str:
     if regex.match(r"^[A-Z]{3}-[A-Z]{3}$", product_id) is None:
@@ -109,11 +134,11 @@ def get_product_info(product_id: str) -> str:
 @command(
     "create_order",
     "Create a buy or sell order",
-    '"side": "<side>", "product_id": "<product_id>", "quote_size": "<quote_size>"',
-    CFG.enable_coinbase and not CFG.coinbase_is_sandbox,
-    "enable coinbase in config and disable sandbox",
+    '"side": "<side>", "product_id": "<product_id>", "size": "<size>"',
+    ENABLE,
+    ENABLE_MSG,
 )
-def create_order(side: str, product_id: str, quote_size: str) -> str:
+def create_order(side: str, product_id: str, size: str) -> str:
     if regex.match(r"^[A-Z]{3}-[A-Z]{3}$", product_id) is None:
         return f"Invalid product id: {product_id}. Should have form 'XXX-GBP'"
 
@@ -121,13 +146,12 @@ def create_order(side: str, product_id: str, quote_size: str) -> str:
     if side not in ["BUY", "SELL"]:
         return f"Invalid side: {side} should be one of [BUY, SELL]"
 
-    if type(quote_size) != str or not quote_size.replace(".", "").isnumeric():
-        return f"Invalid quote size, should be a string representing a float: {quote_size}"
-    quote_size = float(quote_size)
+    if type(size) != str or not size.replace(".", "").isnumeric():
+        return f"Invalid quote size, should be a string representing a float: {size}"
 
     # TEMP SAFETY CHECK
-    if quote_size > 20:
-        return f"Trade blocked! Quote size too large: £{quote_size}, only orders up to £20 are allowed"
+    if float(size) > 20:
+        return f"Trade blocked! Quote size too large: £{size}, only orders up to £20 are allowed"
 
     request = Request('POST', join(BASE_URL, 'orders'))
     request.data = json.dumps({
@@ -136,7 +160,8 @@ def create_order(side: str, product_id: str, quote_size: str) -> str:
         "side": side,
         "order_configuration": {
             "market_market_ioc": {
-                "quote_size": str(quote_size),
+                "quote_size": size if side == "BUY" else None,
+                "base_size": size if side == "SELL" else None
             }
         }
     })
@@ -145,15 +170,34 @@ def create_order(side: str, product_id: str, quote_size: str) -> str:
     if not resp.ok:
         return f"Error creating order: {resp.text}"
 
+    jsn = resp.json()
+    if not jsn["success"]:
+        return f"Error creating order: {jsn['error_response']}"
+
     print("Sleeping for 1h after making this trade successfully...")
     time.sleep(60 * 60)
     print("Waking up again")
 
-    return f"Order created: {resp.json()}"
+    return f"Order creation response: {resp.json()}"
+
+
+@command(
+    "no_order",
+    "Choose not to make any trades for 10 mins",
+    '',
+    ENABLE,
+    ENABLE_MSG,
+    )
+def no_order() -> str:
+    print("sleeping for 10mins...")
+    time.sleep(10 * 60)
+    print("Waking up again")
+    return "No order created"
 
 
 # testing
 if __name__ == '__main__':
-    print(get_wallet_for('GBP'))
-    print(get_product_info('BTC-USD'))
-    print(create_order('buy', 'BTC-GBP', '1.0'))
+    # print(get_wallet_for('GBP'))
+    # print(get_product_info('BTC-USD'))
+    print(get_products())
+    # print(create_order('buy', 'BTC-GBP', '1.2'))
