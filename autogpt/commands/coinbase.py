@@ -118,7 +118,7 @@ def get_products() -> str:
     ENABLE_MSG,
 )
 def get_product_info(product_id: str) -> str:
-    if regex.match(r"^[A-Z]{3}-[A-Z]{3}$", product_id) is None:
+    if regex.match(r"^[A-Z]{3,4}-[A-Z]{3,4}$", product_id) is None:
         return f"Invalid product id: {product_id}"
 
     request = Request('GET', join(BASE_URL, 'products', product_id))
