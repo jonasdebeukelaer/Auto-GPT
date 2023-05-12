@@ -149,6 +149,9 @@ def create_order(side: str, product_id: str, size: str) -> str:
     if type(size) != str or not size.replace(".", "").isnumeric():
         return f"Invalid quote size, should be a string representing a float: {size}"
 
+    if float(size) <= 5:
+        return f"Trade blocked! Quote size too small: £{size}, only orders above £5 are allowed"
+
     # TEMP SAFETY CHECK
     if float(size) > 20:
         return f"Trade blocked! Quote size too large: £{size}, only orders up to £20 are allowed"
@@ -190,7 +193,7 @@ def create_order(side: str, product_id: str, size: str) -> str:
     )
 def no_order() -> str:
     print("sleeping for 10mins...")
-    time.sleep(10 * 60)
+    # time.sleep(10 * 60)
     print("Waking up again")
     return "No order created"
 
@@ -200,4 +203,4 @@ if __name__ == '__main__':
     # print(get_wallet_for('GBP'))
     # print(get_product_info('BTC-USD'))
     print(get_products())
-    # print(create_order('buy', 'BTC-GBP', '1.2'))
+    # print(create_order('buy', 'BTC-GBP', '0.1'))
