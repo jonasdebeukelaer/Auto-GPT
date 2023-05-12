@@ -14,15 +14,23 @@ import hashlib
 import time
 
 from autogpt.config import Config
+from autogpt.logs import logger
 
 CFG = Config()
-
 BASE_URL = "https://api.coinbase.com/api/v3/brokerage"
-
 ENABLE = CFG.enable_coinbase and not CFG.coinbase_is_sandbox
 ENABLE_MSG = "Enable coinbase in config and disable sandbox"
 
 s = Session()
+wallet = {}
+
+
+def _update_wallet():
+    global wallet
+    raw_wallet: list = get_all_wallets()["accounts"]
+    wallet = {w['name']: w['available_balance']['value'] + " " + w["available_balance"]["currency"] for w in raw_wallet}
+
+    logger.info(f"Wallet updated: {wallet}")
 
 
 def add_headers(request: Request) -> Request:
@@ -50,42 +58,15 @@ def make_request(request: Request) -> Response:
     ENABLE,
     ENABLE_MSG,
 )
-def get_all_wallets() -> str:
+def get_all_wallets() -> list:
     request = Request('GET', join(BASE_URL, 'accounts'))
     request.data = ''
     resp = make_request(request)
 
     if not resp.ok:
-        return f"Error getting wallets: {resp.text}"
+        raise Exception(f"Error getting bitcoin wallet info: {resp.text}")
 
-    return f"Wallets information: {resp.json()}"
-
-
-@command(
-    "get_wallet_balance",
-    "Get available balance in coinbase wallet for given cryptocurrency",
-    '"ticker": "<ticker>"',
-    ENABLE,
-    ENABLE_MSG,
-)
-def get_wallet_for(ticker: str) -> str:
-    if regex.match(r"^[A-Z]{3}$", ticker) is None:
-        return f"Invalid ticker: {ticker}"
-
-    request = Request('GET', join(BASE_URL, 'accounts'))
-    request.data = ''
-    resp = make_request(request)
-
-    if not resp.ok:
-        return f"Error getting bitcoin wallet info: {resp.text}"
-
-    info = ""
-    for account in resp.json()["accounts"]:
-        if account["currency"] == ticker:
-            info = account
-            break
-
-    return f"{ticker} wallet information: {info}"
+    return resp.json()
 
 
 @command(
@@ -149,12 +130,9 @@ def create_order(side: str, product_id: str, size: str) -> str:
     if type(size) != str or not size.replace(".", "").isnumeric():
         return f"Invalid quote size, should be a string representing a float: {size}"
 
-    if float(size) <= 5:
-        return f"Trade blocked! Quote size too small: £{size}, only orders above £5 are allowed"
-
     # TEMP SAFETY CHECK
-    if float(size) > 20:
-        return f"Trade blocked! Quote size too large: £{size}, only orders up to £20 are allowed"
+    if float(size) < 5 or float(size) > 20:
+        return f"Trade blocked! Quote size should be between £5 and £20: £{size}"
 
     request = Request('POST', join(BASE_URL, 'orders'))
     request.data = json.dumps({
@@ -181,6 +159,7 @@ def create_order(side: str, product_id: str, size: str) -> str:
     time.sleep(60 * 60)
     print("Waking up again")
 
+    _update_wallet()
     return f"Order creation response: {resp.json()}"
 
 
@@ -197,6 +176,8 @@ def no_order() -> str:
     print("Waking up again")
     return "No order created"
 
+
+_update_wallet()
 
 # testing
 if __name__ == '__main__':
