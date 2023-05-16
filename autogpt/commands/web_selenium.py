@@ -125,12 +125,10 @@ def scrape_text_with_selenium(url: str, agent: Agent) -> tuple[WebDriver, str]:
 
         chromium_driver_path = Path("/usr/bin/chromedriver")
 
-        # get absolute path of current dir
-        current_dir = os.path.dirname(os.path.realpath(__file__))
-        options.add_extension(f"{current_dir}/../../chrome_settings/extensions/still-don-t-care-about-cookies.crx")
+        options.add_extension(f"{FILE_DIR}/chrome_settings/extensions/still-don-t-care-about-cookies.crx")
 
-        options.add_argument("user-data-dir=chrome_settings/profile")
-        options.add_argument("--profile-directory=test")
+        options.add_argument(f"--user-data-dir={FILE_DIR}/chrome_settings/profile")
+        options.add_argument("--profile-directory=Default")
 
         driver = ChromeDriver(
             service=ChromeDriverService(str(chromium_driver_path))
