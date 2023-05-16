@@ -3,6 +3,7 @@ A module that allows you to interact with the Coinbase API.
 """
 
 from os.path import join
+from typing import Dict, List, Any
 from urllib.parse import urlparse
 
 from autogpt.commands.command import command
@@ -27,13 +28,13 @@ wallet = {}
 
 def _update_wallet():
     global wallet
-    raw_wallet: list = get_all_wallets()["accounts"]
+    raw_wallet: list = _get_all_wallets()["accounts"]
     wallet = {w['name']: w['available_balance']['value'] + " " + w["available_balance"]["currency"] for w in raw_wallet}
 
-    logger.info(f"Wallet updated: {wallet}")
+    logger.debug(f"Wallet updated: {wallet}")
 
 
-def add_headers(request: Request) -> Request:
+def _add_headers(request: Request) -> Request:
     timestamp = str(int(time.time()))
     path = str(urlparse(request.url).path).split('?')[0]
     message = timestamp + request.method + path + str(request.data or '')
@@ -46,22 +47,15 @@ def add_headers(request: Request) -> Request:
     return request
 
 
-def make_request(request: Request) -> Response:
-    request = add_headers(request)
+def _make_request(request: Request) -> Response:
+    request = _add_headers(request)
     return s.send(request.prepare())
 
 
-@command(
-    "get_wallet_balances",
-    "Get available balances in coinbase wallet",
-    "",
-    ENABLE,
-    ENABLE_MSG,
-)
-def get_all_wallets() -> list:
+def _get_all_wallets() -> Dict[str, List[Any]]:
     request = Request('GET', join(BASE_URL, 'accounts'))
     request.data = ''
-    resp = make_request(request)
+    resp = _make_request(request)
 
     if not resp.ok:
         raise Exception(f"Error getting bitcoin wallet info: {resp.text}")
@@ -78,13 +72,15 @@ def get_all_wallets() -> list:
 )
 def get_products() -> str:
     request = Request('GET', join(BASE_URL, 'products'))
-    resp = make_request(request)
+    resp = _make_request(request)
 
     if not resp.ok:
         return f"Error getting available products: {resp.text}"
 
     products = []
     for details in resp.json()["products"]:
+
+        # TODO: Add support for other currencies
         if details["product_id"].endswith("GBP"):
             products.append(details["product_id"] + " (" + details["base_name"] + " - " + details["quote_name"] + ")")
 
@@ -104,7 +100,7 @@ def get_product_info(product_id: str) -> str:
 
     request = Request('GET', join(BASE_URL, 'products', product_id))
     request.data = ''
-    resp = make_request(request)
+    resp = _make_request(request)
 
     if not resp.ok:
         return f"Error getting product info: {resp.text}"
@@ -146,7 +142,7 @@ def create_order(side: str, product_id: str, size: str) -> str:
             }
         }
     })
-    resp = make_request(request)
+    resp = _make_request(request)
 
     if not resp.ok:
         return f"Error creating order: {resp.text}"
@@ -171,7 +167,7 @@ def create_order(side: str, product_id: str, size: str) -> str:
     ENABLE_MSG,
     )
 def no_order() -> str:
-    print("sleeping for 10mins...")
+    print("sleeping for 10 minutes...")
     # time.sleep(10 * 60)
     print("Waking up again")
     return "No order created"
