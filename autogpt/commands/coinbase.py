@@ -81,7 +81,7 @@ def get_products() -> str:
     for details in resp.json()["products"]:
 
         # TODO: Add support for other currencies
-        if details["product_id"].endswith("GBP"):
+        if not details["product_id"].endswith("EUR") or not details["product_id"].endswith("USD"):
             products.append(details["product_id"] + " (" + details["base_name"] + " - " + details["quote_name"] + ")")
 
     return f"Available products: {products}"
@@ -89,7 +89,7 @@ def get_products() -> str:
 
 @command(
     "get_product_info",
-    "Get cryptocurrency product info including price in GBP",
+    "Get cryptocurrency product info including its price",
     '"product_id": "<product_id>"',
     ENABLE,
     ENABLE_MSG,
@@ -105,7 +105,20 @@ def get_product_info(product_id: str) -> str:
     if not resp.ok:
         return f"Error getting product info: {resp.text}"
 
-    return f"Product information: {resp.json()}"
+    wanted_keys = [
+        "product_id",
+        "price",
+        "price_percentage_change_24h",
+        "volume_24h",
+        "volume_percentage_change_24h",
+        "quote_min_size",
+        "quote_max_size",
+        "product_type",
+        "mid_market_price"
+    ]
+    info = dict((k, resp.json()[k]) for k in wanted_keys if k in resp.json())
+
+    return f"Product information: {info}"
 
 
 @command(
@@ -125,10 +138,6 @@ def create_order(side: str, product_id: str, size: str) -> str:
 
     if type(size) != str or not size.replace(".", "").isnumeric():
         return f"Invalid quote size, should be a string representing a float: {size}"
-
-    # TEMP SAFETY CHECK
-    if float(size) < 5 or float(size) > 20:
-        return f"Trade blocked! Quote size should be between £5 and £20: £{size}"
 
     request = Request('POST', join(BASE_URL, 'orders'))
     request.data = json.dumps({
@@ -168,7 +177,7 @@ def create_order(side: str, product_id: str, size: str) -> str:
     )
 def no_order() -> str:
     print("sleeping for 10 minutes...")
-    # time.sleep(10 * 60)
+    time.sleep(10 * 60)
     print("Waking up again")
     return "No order created"
 
