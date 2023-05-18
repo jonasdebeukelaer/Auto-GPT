@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-import os
 from pathlib import Path
 from sys import platform
 from typing import Optional, Type
@@ -38,6 +37,7 @@ from autogpt.url_utils.validators import validate_url
 BrowserOptions = ChromeOptions | EdgeOptions | FirefoxOptions | SafariOptions
 
 FILE_DIR = Path(__file__).parent.parent
+PROJECT_ROOT_DIR = FILE_DIR.parent
 
 
 @command(
@@ -125,9 +125,9 @@ def scrape_text_with_selenium(url: str, agent: Agent) -> tuple[WebDriver, str]:
 
         chromium_driver_path = Path("/usr/bin/chromedriver")
 
-        options.add_extension(f"{FILE_DIR}/chrome_settings/extensions/still-don-t-care-about-cookies.crx")
+        options.add_extension(f"{PROJECT_ROOT_DIR}/chrome_settings/extensions/still-don-t-care-about-cookies.crx")
 
-        options.add_argument(f"--user-data-dir={FILE_DIR}/chrome_settings/profile")
+        options.add_argument(f"--user-data-dir={PROJECT_ROOT_DIR}/chrome_settings/profile")
         options.add_argument("--profile-directory=Default")
 
         driver = ChromeDriver(
