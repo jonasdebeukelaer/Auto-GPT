@@ -161,6 +161,6 @@ openai/
 CURRENT_BULLETIN.md
 
 # custom
-milvus/volumes/
+volumes/
 venv/
 chrome_settings/profile/

@@ -1,5 +1,5 @@
 # 'dev' or 'release' container build
-ARG BUILD_TYPE=dev
+ARG BUILD_TYPE=release
 
 # Use an official Python base image from the Docker Hub
 FROM python:3.10-slim AS autogpt-base

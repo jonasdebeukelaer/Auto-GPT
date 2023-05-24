@@ -1,0 +1,5 @@
+build:
+  docker:
+    tradergpt: Dockerfile
+run:
+  tradergpt: python -m autogpt --ai-settings ai_settings.yaml --gpt3only --skip-news --debug --continuous
