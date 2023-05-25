@@ -1,3 +1,5 @@
 build:
   docker:
-    tradergpt: Dockerfile.heroku
+    worker: Dockerfile.heroku
+run:
+  worker: ./run_heroku.sh

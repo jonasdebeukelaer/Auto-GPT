@@ -31,5 +31,3 @@ FROM autogpt-release AS auto-gpt
 
 COPY env.heroku .env
 COPY run_heroku.sh .
-
-CMD ["./run_heroku.sh"]
