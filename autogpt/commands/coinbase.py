@@ -3,7 +3,7 @@ A module that allows you to interact with the Coinbase API.
 """
 
 from os.path import join
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional, Union
 from urllib.parse import urlparse
 
 from autogpt.commands.command import command
@@ -80,11 +80,10 @@ def get_products() -> str:
     products = []
     for details in resp.json()["products"]:
 
-        # TODO: Add support for other currencies
-        if not details["product_id"].endswith("EUR") or not details["product_id"].endswith("USD"):
-            products.append(details["product_id"] + " (" + details["base_name"] + " - " + details["quote_name"] + ")")
+        if details["product_id"].endswith("GBP") or details["product_id"].endswith("BTC"):
+            products.append(details["product_id"])
 
-    return f"Available products: {products}"
+    return f"Available products: {','.join(products)}"
 
 
 @command(
@@ -112,11 +111,17 @@ def get_product_info(product_id: str) -> str:
         "volume_24h",
         "volume_percentage_change_24h",
         "quote_min_size",
-        "quote_max_size",
+        "base_min_size",
         "product_type",
         "mid_market_price"
     ]
-    info = dict((k, resp.json()[k]) for k in wanted_keys if k in resp.json())
+
+    def _round_if_number(v: str) -> str:
+        if type(v) == str and v.replace(".", "").isnumeric() and "." in v and len(v.split(".")[1]) > 5:
+            return f"{float(v):.6f}"
+        return v
+
+    info = dict((k, _round_if_number(resp.json()[k])) for k in wanted_keys if k in resp.json())
 
     return f"Product information: {info}"
 
@@ -186,7 +191,6 @@ _update_wallet()
 
 # testing
 if __name__ == '__main__':
-    # print(get_wallet_for('GBP'))
-    # print(get_product_info('BTC-USD'))
+    print(get_product_info('BTC-GBP'))
     print(get_products())
     # print(create_order('buy', 'BTC-GBP', '0.1'))
