@@ -19,14 +19,15 @@ ENV PATH="$PATH:/root/.local/bin"
 COPY requirements.txt .
 
 # release build -> include bare minimum
-FROM autogpt-base as auto-gpt
+FROM autogpt-base as autogpt-release
 RUN sed -i '/Items below this point will not be included in the Docker Image/,$d' requirements.txt && \
 	pip install --no-cache-dir -r requirements.txt
 WORKDIR /app
-
 ONBUILD COPY autogpt ./autogpt
 ONBUILD COPY scripts ./scripts
 ONBUILD COPY plugins ./plugins
+
+FROM autogpt-release AS auto-gpt
 
 COPY heroku/env .env
 COPY heroku/run.sh .
