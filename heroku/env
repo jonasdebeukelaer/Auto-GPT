@@ -153,15 +153,6 @@ MEMORY_INDEX=auto-gpt
 ### HUGGINGFACE
 # HUGGINGFACE_AUDIO_TO_TEXT_MODEL=facebook/wav2vec2-base-960h
 
-################################################################################
-### GIT Provider for repository actions
-################################################################################
-
-### GITHUB
-## GITHUB_API_KEY - Github API key / PAT (Example: github_pat_123)
-## GITHUB_USERNAME - Github username
-# GITHUB_API_KEY=github_pat_123
-# GITHUB_USERNAME=your-github-username
 
 ################################################################################
 ### WEB BROWSING
@@ -205,20 +196,11 @@ USE_WEB_BROWSER=chrome
 # ELEVENLABS_VOICE_2_ID=your-voice-id-2
 
 ################################################################################
-### TWITTER API
-################################################################################
-
-# TW_CONSUMER_KEY=
-# TW_CONSUMER_SECRET=
-# TW_ACCESS_TOKEN=
-# TW_ACCESS_TOKEN_SECRET=
-
-################################################################################
 ### COINBASE
 ################################################################################
 
 # secondary account
-ENABLE_COINBASE=True
-COINBASE_IS_SANDBOX=True
+COINBASE_ENABLED=true
+COINBASE_IS_SANDBOX=false
 # COINBASE_API_KEY=-
 # COINBASE_API_SECRET=-

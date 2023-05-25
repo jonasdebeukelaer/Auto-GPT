@@ -136,7 +136,7 @@ class Config(metaclass=Singleton):
         self.selenium_headless = os.getenv("HEADLESS_BROWSER", "True") == "True"
 
         # Coinbase settings
-        self.enable_coinbase = os.getenv("ENABLE_COINBASE", "False") == "True"
+        self.enable_coinbase = os.getenv("COINBASE_ENABLED", "false").lower() == "true"
         if self.enable_coinbase:
             self.coinbase_api_key = os.getenv("COINBASE_API_KEY")
             self.coinbase_api_secret = os.getenv("COINBASE_API_SECRET")
