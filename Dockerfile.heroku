@@ -26,6 +26,7 @@ WORKDIR /app
 ONBUILD COPY autogpt ./autogpt
 ONBUILD COPY scripts ./scripts
 ONBUILD COPY plugins ./plugins
+ONBUILD COPY chrome_settings ./chrome_settings
 
 FROM autogpt-release AS auto-gpt
 
