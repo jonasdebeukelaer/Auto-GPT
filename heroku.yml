@@ -2,4 +2,4 @@ build:
   docker:
     worker: Dockerfile.heroku
 run:
-  worker: echo "wow" && bash ./run_heroku.sh
+  worker: echo "wowow" && bash ./run_heroku.sh
