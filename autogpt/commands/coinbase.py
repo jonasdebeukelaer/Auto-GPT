@@ -3,7 +3,7 @@ A module that allows you to interact with the Coinbase API.
 """
 
 from os.path import join
-from typing import Dict, List, Any, Optional, Union
+from typing import Dict, List, Any
 from urllib.parse import urlparse
 
 from autogpt.commands.command import command
@@ -126,16 +126,32 @@ def get_product_info(product_id: str) -> str:
     return f"Product information: {info}"
 
 
+# TODO: bring back separate commands for buy and sell
 @command(
-    "create_order",
-    "Create a buy or sell order",
-    '"side": "<side>", "product_id": "<product_id>", "size": "<size>"',
+    "create_buy_order",
+    "Buy a cryptocurrency",
+    '"product_id": "<product_id>", "quote_size": "<quote_size>"',
     ENABLE,
     ENABLE_MSG,
 )
-def create_order(side: str, product_id: str, size: str) -> str:
+def create_buy_order(product_id: str, size: str) -> str:
+    return _create_order("BUY", product_id, size)
+
+
+@command(
+    "create_sell_order",
+    "Sell a cryptocurrency",
+    '"product_id": "<product_id>", "base_size": "<base_size>"',
+    ENABLE,
+    ENABLE_MSG,
+)
+def create_sell_order(product_id: str, size: str) -> str:
+    return _create_order("SELL", product_id, size)
+
+
+def _create_order(side: str, product_id: str, size: str) -> str:
     if regex.match(r"^[A-Z]{3}-[A-Z]{3}$", product_id) is None:
-        return f"Invalid product id: {product_id}. Should have form 'XXX-GBP'"
+        return f"Invalid product id: {product_id}. Should have form '<ticker1>-<ticker2>'"
 
     side = side.upper()
     if side not in ["BUY", "SELL"]:
@@ -184,6 +200,8 @@ def no_order() -> str:
     print("sleeping for 10 minutes...")
     time.sleep(10 * 60)
     print("Waking up again")
+
+    _update_wallet()  # in case any orders were still pending
     return "No order created"
 
 
