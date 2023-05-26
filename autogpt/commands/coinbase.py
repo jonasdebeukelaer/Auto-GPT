@@ -26,43 +26,6 @@ s = Session()
 wallet = {}
 
 
-def _update_wallet():
-    global wallet
-    raw_wallet: list = _get_all_wallets()["accounts"]
-    wallet = {w['name']: w['available_balance']['value'] + " " + w["available_balance"]["currency"] for w in raw_wallet}
-
-    logger.debug(f"Wallet updated: {wallet}")
-
-
-def _add_headers(request: Request) -> Request:
-    timestamp = str(int(time.time()))
-    path = str(urlparse(request.url).path).split('?')[0]
-    message = timestamp + request.method + path + str(request.data or '')
-    signature = hmac.new(CFG.coinbase_api_secret.encode('utf-8'), message.encode('utf-8'), digestmod=hashlib.sha256).digest()
-
-    request.headers['CB-ACCESS-KEY'] = CFG.coinbase_api_key
-    request.headers['CB-ACCESS-SIGN'] = signature.hex()
-    request.headers['CB-ACCESS-TIMESTAMP'] = timestamp
-    request.headers['Content-Type'] = 'application/json'
-    return request
-
-
-def _make_request(request: Request) -> Response:
-    request = _add_headers(request)
-    return s.send(request.prepare())
-
-
-def _get_all_wallets() -> Dict[str, List[Any]]:
-    request = Request('GET', join(BASE_URL, 'accounts'))
-    request.data = ''
-    resp = _make_request(request)
-
-    if not resp.ok:
-        raise Exception(f"Error getting bitcoin wallet info: {resp.text}")
-
-    return resp.json()
-
-
 @command(
     "get_products",
     "Get a list of the available currency pairs for trading.",
@@ -116,17 +79,17 @@ def get_product_info(product_id: str) -> str:
         "mid_market_price"
     ]
 
-    def _round_if_number(v: str) -> str:
-        if type(v) == str and v.replace(".", "").isnumeric() and "." in v and len(v.split(".")[1]) > 5:
-            return f"{float(v):.6f}"
-        return v
+    resp_json: dict = resp.json()
+    info = dict((k, resp_json[k]) for k in wanted_keys if k in resp_json)
 
-    info = dict((k, _round_if_number(resp.json()[k])) for k in wanted_keys if k in resp.json())
+    # reduce precision of some values to save tokens
+    info["volume_24h"] = _to_sig_digits(info["volume_24h"], 4)
+    info["price_percentage_change_24h"] = _to_sig_digits(info["price_percentage_change_24h"], 4)
+    info["volume_percentage_change_24h"] = _to_sig_digits(info["volume_percentage_change_24h"], 4)
 
     return f"Product information: {info}"
 
 
-# TODO: bring back separate commands for buy and sell
 @command(
     "create_buy_order",
     "Buy a cryptocurrency",
@@ -147,6 +110,68 @@ def create_buy_order(product_id: str, quote_size: str) -> str:
 )
 def create_sell_order(product_id: str, base_size: str) -> str:
     return _create_order("SELL", product_id, base_size)
+
+
+@command(
+    "no_order",
+    "Choose not to make any trades for 30 minutes",
+    '',
+    ENABLE,
+    ENABLE_MSG,
+)
+def no_order() -> str:
+    print("sleeping for 30 minutes...")
+    time.sleep(30 * 60)
+    print("Waking up again")
+
+    _update_wallet()  # in case any orders were still pending
+    return "No order created"
+
+
+def _update_wallet():
+    global wallet
+    raw_wallet: list = _get_all_wallets()["accounts"]
+    wallet = {w['name']: _to_sig_digits(w['available_balance']['value'], 4) + " " + w["available_balance"]["currency"]
+              for w in raw_wallet}
+
+    logger.debug(f"Wallet updated: {wallet}")
+
+
+def _to_sig_digits(val: str, n: int) -> str:
+    if type(val) == str and val.replace(".", "").replace("-", "").isnumeric():
+        num = float(val)
+        return '{:g}'.format(float('{:.{p}g}'.format(num, p=n)))
+    return val
+
+
+def _add_headers(request: Request) -> Request:
+    timestamp = str(int(time.time()))
+    path = str(urlparse(request.url).path).split('?')[0]
+    message = timestamp + request.method + path + str(request.data or '')
+    signature = hmac.new(CFG.coinbase_api_secret.encode('utf-8'), message.encode('utf-8'),
+                         digestmod=hashlib.sha256).digest()
+
+    request.headers['CB-ACCESS-KEY'] = CFG.coinbase_api_key
+    request.headers['CB-ACCESS-SIGN'] = signature.hex()
+    request.headers['CB-ACCESS-TIMESTAMP'] = timestamp
+    request.headers['Content-Type'] = 'application/json'
+    return request
+
+
+def _make_request(request: Request) -> Response:
+    request = _add_headers(request)
+    return s.send(request.prepare())
+
+
+def _get_all_wallets() -> Dict[str, List[Any]]:
+    request = Request('GET', join(BASE_URL, 'accounts'))
+    request.data = ''
+    resp = _make_request(request)
+
+    if not resp.ok:
+        raise Exception(f"Error getting bitcoin wallet info: {resp.text}")
+
+    return resp.json()
 
 
 def _create_order(side: str, product_id: str, size: str) -> str:
@@ -181,28 +206,12 @@ def _create_order(side: str, product_id: str, size: str) -> str:
     if not jsn["success"]:
         return f"Error creating order: {jsn['error_response']}"
 
-    print("Sleeping for 1h after making this trade successfully...")
-    time.sleep(60 * 60)
+    print("Sleeping for 2h after making this trade successfully...")
+    time.sleep(2 * 60 * 60)
     print("Waking up again")
 
     _update_wallet()
     return f"Order creation response: {resp.json()}"
-
-
-@command(
-    "no_order",
-    "Choose not to make any trades for 10 mins",
-    '',
-    ENABLE,
-    ENABLE_MSG,
-    )
-def no_order() -> str:
-    print("sleeping for 10 minutes...")
-    time.sleep(10 * 60)
-    print("Waking up again")
-
-    _update_wallet()  # in case any orders were still pending
-    return "No order created"
 
 
 _update_wallet()
@@ -212,3 +221,4 @@ if __name__ == '__main__':
     print(get_product_info('BTC-GBP'))
     print(get_products())
     # print(create_order('buy', 'BTC-GBP', '0.1'))
+    print(wallet)
