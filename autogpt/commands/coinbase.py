@@ -134,8 +134,8 @@ def get_product_info(product_id: str) -> str:
     ENABLE,
     ENABLE_MSG,
 )
-def create_buy_order(product_id: str, size: str) -> str:
-    return _create_order("BUY", product_id, size)
+def create_buy_order(product_id: str, quote_size: str) -> str:
+    return _create_order("BUY", product_id, quote_size)
 
 
 @command(
@@ -145,8 +145,8 @@ def create_buy_order(product_id: str, size: str) -> str:
     ENABLE,
     ENABLE_MSG,
 )
-def create_sell_order(product_id: str, size: str) -> str:
-    return _create_order("SELL", product_id, size)
+def create_sell_order(product_id: str, base_size: str) -> str:
+    return _create_order("SELL", product_id, base_size)
 
 
 def _create_order(side: str, product_id: str, size: str) -> str:
