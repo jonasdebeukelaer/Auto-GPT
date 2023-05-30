@@ -154,18 +154,18 @@ def get_price_history(product_id: str) -> str:
     return f"Price info for last 3 days for {product_id}: {_get_candles(product_id)}"
 
 
-def _update_btc_candles():
+def _update_btc_price_history():
     global btc_price_history
     btc_price_history = _get_candles("BTC-GBP")
 
-    logger.debug(f"Updated BTC candles: {btc_price_history}")
+    logger.debug(f"Updated BTC price history: {btc_price_history}")
 
 
-def _update_eth_candles():
+def _update_eth_price_history():
     global eth_price_history
     eth_price_history = _get_candles("ETH-GBP")
 
-    logger.debug(f"Updated ETH candles: {eth_price_history}")
+    logger.debug(f"Updated ETH price history: {eth_price_history}")
 
 
 def _get_candles(product_id: str, look_back_days: int = 3) -> List[Dict[str, str]]:
@@ -322,8 +322,8 @@ def _create_order(side: str, product_id: str, size: str) -> str:
 def _update_state():
     _update_wallet()
     _update_last_10_trades()
-    _update_btc_candles()
-    _update_eth_candles()
+    _update_btc_price_history()
+    _update_eth_price_history()
 
 
 _update_state()
