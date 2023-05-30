@@ -1,9 +1,9 @@
 """
 A module that allows you to interact with the Coinbase API.
 """
-
+from datetime import datetime
 from os.path import join
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Union
 from urllib.parse import urlparse
 
 from autogpt.commands.command import command
@@ -24,6 +24,7 @@ ENABLE_MSG = "Enable coinbase in config and disable sandbox"
 
 s = Session()
 wallet = {}
+last_10_trades = []
 
 
 @command(
@@ -124,8 +125,55 @@ def no_order() -> str:
     time.sleep(30 * 60)
     print("Waking up again")
 
-    _update_wallet()  # in case any orders were still pending
+    # In case any orders were still pending
+    _update_wallet()
+    _update_last_10_trades()
+
     return "No order created"
+
+
+@command(
+    "get_last_10_trades_for_product",
+    "Get last 10 trades you have made for a given product",
+    '"product_id": "<product_id>"',
+    ENABLE,
+    ENABLE_MSG,
+)
+def get_last_10_trades_for_product(product_id: str) -> str:
+    return _get_last_filled_orders(product_id)
+
+
+def _update_last_10_trades() -> None:
+    global last_10_trades
+    last_10_trades = _get_last_filled_orders()
+    logger.debug(f"last_10_trades updated: {last_10_trades}")
+
+
+def _get_last_filled_orders(product_id: Union[str, None] = None, limit: int = 10) -> str:
+    if product_id is not None and regex.match(r"^[A-Z]{3,4}-[A-Z]{3,4}$", product_id) is None:
+        return f"Invalid product id: {product_id}"
+
+    params = {"order_status": "FILLED", "limit": limit}
+    if product_id is not None:
+        params["product_id"] = product_id
+
+    request = Request('GET', url=join(BASE_URL, 'orders/historical/batch'), params=params)
+    request.data = ''
+    resp = _make_request(request)
+
+    if not resp.ok:
+        return f"Error getting product info: {resp.text}"
+
+    filled_orders = []
+    for order in resp.json()["orders"]:
+        fmt_time = datetime.strptime(order["created_time"], "%Y-%m-%dT%H:%M:%S.%fZ").strftime(
+            "%Y-%m-%dT%H:%M:%SZ")
+        fmt_size = _to_sig_digits(order["filled_size"], 4)
+        fmt_price = _to_sig_digits(order["average_filled_price"], 4)
+        fmt_entry = f"{fmt_time} {order['side']} {fmt_size} {order['product_id']} @ {fmt_price}"
+        filled_orders.append(fmt_entry)
+
+    return ",".join(filled_orders)
 
 
 def _update_wallet():
@@ -215,10 +263,12 @@ def _create_order(side: str, product_id: str, size: str) -> str:
 
 
 _update_wallet()
+_update_last_10_trades()
 
 # testing
 if __name__ == '__main__':
-    print(get_product_info('BTC-GBP'))
-    print(get_products())
+    # print(get_product_info('BTC-GBP'))
+    # print(get_products())
     # print(create_order('buy', 'BTC-GBP', '0.1'))
-    print(wallet)
+    # print(wallet)
+    print(last_10_trades)
