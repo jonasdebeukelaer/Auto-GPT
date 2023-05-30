@@ -140,7 +140,10 @@ def no_order() -> str:
     ENABLE_MSG,
 )
 def get_last_10_trades_for_product(product_id: str) -> str:
-    return _get_last_filled_orders(product_id)
+    if product_id is not None and regex.match(r"^[A-Z]{3,4}-[A-Z]{3,4}$", product_id) is None:
+        return f"Invalid product id: {product_id}"
+
+    return f"Last 10 trades for this product: {_get_last_filled_orders(product_id)}"
 
 
 def _update_last_10_trades() -> None:
@@ -149,10 +152,7 @@ def _update_last_10_trades() -> None:
     logger.debug(f"last_10_trades updated: {last_10_trades}")
 
 
-def _get_last_filled_orders(product_id: Union[str, None] = None, limit: int = 10) -> str:
-    if product_id is not None and regex.match(r"^[A-Z]{3,4}-[A-Z]{3,4}$", product_id) is None:
-        return f"Invalid product id: {product_id}"
-
+def _get_last_filled_orders(product_id: Union[str, None] = None, limit: int = 10) -> List[str]:
     params = {"order_status": "FILLED", "limit": limit}
     if product_id is not None:
         params["product_id"] = product_id
@@ -162,7 +162,7 @@ def _get_last_filled_orders(product_id: Union[str, None] = None, limit: int = 10
     resp = _make_request(request)
 
     if not resp.ok:
-        return f"Error getting product info: {resp.text}"
+        raise Exception(f"Error getting last filled orders: {resp.text}")
 
     filled_orders = []
     for order in resp.json()["orders"]:
@@ -173,14 +173,14 @@ def _get_last_filled_orders(product_id: Union[str, None] = None, limit: int = 10
         fmt_entry = f"{fmt_time} {order['side']} {fmt_size} {order['product_id']} @ {fmt_price}"
         filled_orders.append(fmt_entry)
 
-    return ",".join(filled_orders)
+    return filled_orders
 
 
 def _update_wallet():
     global wallet
     raw_wallet: list = _get_all_wallets()["accounts"]
-    wallet = {w['name']: _to_sig_digits(w['available_balance']['value'], 4) + " " + w["available_balance"]["currency"]
-              for w in raw_wallet}
+    wallet = [_to_sig_digits(w['available_balance']['value'], 4) + " " + w["available_balance"]["currency"]
+              for w in raw_wallet]
 
     logger.debug(f"Wallet updated: {wallet}")
 
