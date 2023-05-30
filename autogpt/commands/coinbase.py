@@ -1,7 +1,7 @@
 """
 A module that allows you to interact with the Coinbase API.
 """
-from datetime import datetime
+from datetime import datetime, timedelta
 from os.path import join
 from typing import Dict, List, Any, Union
 from urllib.parse import urlparse
@@ -23,8 +23,10 @@ ENABLE = CFG.enable_coinbase and not CFG.coinbase_is_sandbox
 ENABLE_MSG = "Enable coinbase in config and disable sandbox"
 
 s = Session()
-wallet = {}
+wallet = []
 last_10_trades = []
+btc_price_history = []
+eth_price_history = []  # TODO: include this in context if there's enough context space
 
 
 @command(
@@ -125,9 +127,7 @@ def no_order() -> str:
     time.sleep(30 * 60)
     print("Waking up again")
 
-    # In case any orders were still pending
-    _update_wallet()
-    _update_last_10_trades()
+    _update_state()
 
     return "No order created"
 
@@ -140,10 +140,60 @@ def no_order() -> str:
     ENABLE_MSG,
 )
 def get_last_10_trades_for_product(product_id: str) -> str:
-    if product_id is not None and regex.match(r"^[A-Z]{3,4}-[A-Z]{3,4}$", product_id) is None:
-        return f"Invalid product id: {product_id}"
-
     return f"Last 10 trades for this product: {_get_last_filled_orders(product_id)}"
+
+
+@command(
+    "get_price_history",
+    "Get price info for last 3 days for a product",
+    '"product_id": "<product_id>"',
+    ENABLE,
+    ENABLE_MSG,
+)
+def get_price_history(product_id: str) -> str:
+    return f"Price info for last 3 days for {product_id}: {_get_candles(product_id)}"
+
+
+def _update_btc_candles():
+    global btc_price_history
+    btc_price_history = _get_candles("BTC-GBP")
+
+
+def _update_eth_candles():
+    global eth_price_history
+    eth_price_history = _get_candles("ETH-GBP")
+
+
+def _get_candles(product_id: str, look_back_days: int = 3) -> List[Dict[str, str]]:
+    if regex.match(r"^[A-Z]{3,4}-[A-Z]{3,4}$", product_id) is None:
+        raise ValueError(f"Invalid product id: {product_id}")
+
+    now = datetime.utcnow()
+
+    params = {
+        "granularity": "SIX_HOUR",
+        "start": int((now - timedelta(days=look_back_days)).timestamp()),
+        "end": int(now.timestamp()),
+    }
+
+    request = Request("GET", url=join(BASE_URL, "products", product_id, "candles"), params=params)
+    request.data = ""
+    resp = _make_request(request)
+
+    if not resp.ok:
+        raise Exception(f"Error getting candles: {resp.text}")
+
+    candles_raw = resp.json()['candles']
+    candles_fmt = []
+    for candle in candles_raw:
+        candle_fmt = {
+            'low': _to_sig_digits(candle['low'], 4),
+            'high': _to_sig_digits(candle['high'], 4),
+            'start_time': datetime.fromtimestamp(int(candle['start'])).strftime("%Y-%m-%d %H:%M:%S")
+        }
+        candles_fmt.append(candle_fmt)
+
+    return candles_fmt
 
 
 def _update_last_10_trades() -> None:
@@ -153,6 +203,9 @@ def _update_last_10_trades() -> None:
 
 
 def _get_last_filled_orders(product_id: Union[str, None] = None, limit: int = 10) -> List[str]:
+    if product_id is not None and regex.match(r"^[A-Z]{3,4}-[A-Z]{3,4}$", product_id) is None:
+        raise ValueError(f"Invalid product id: {product_id}")
+
     params = {"order_status": "FILLED", "limit": limit}
     if product_id is not None:
         params["product_id"] = product_id
@@ -258,12 +311,15 @@ def _create_order(side: str, product_id: str, size: str) -> str:
     time.sleep(2 * 60 * 60)
     print("Waking up again")
 
-    _update_wallet()
+    _update_state()
     return f"Order creation response: {resp.json()}"
 
 
-_update_wallet()
-_update_last_10_trades()
+def _update_state():
+    _update_wallet()
+    _update_last_10_trades()
+    _update_btc_candles()
+    _update_eth_candles()
 
 # testing
 if __name__ == '__main__':
@@ -271,4 +327,4 @@ if __name__ == '__main__':
     # print(get_products())
     # print(create_order('buy', 'BTC-GBP', '0.1'))
     # print(wallet)
-    print(last_10_trades)
+    print(_get_candles('BTC-GBP'))
