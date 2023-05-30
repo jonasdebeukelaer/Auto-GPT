@@ -158,10 +158,14 @@ def _update_btc_candles():
     global btc_price_history
     btc_price_history = _get_candles("BTC-GBP")
 
+    logger.debug(f"Updated BTC candles: {btc_price_history}")
+
 
 def _update_eth_candles():
     global eth_price_history
     eth_price_history = _get_candles("ETH-GBP")
+
+    logger.debug(f"Updated ETH candles: {eth_price_history}")
 
 
 def _get_candles(product_id: str, look_back_days: int = 3) -> List[Dict[str, str]]:
