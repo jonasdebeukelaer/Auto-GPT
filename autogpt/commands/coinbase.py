@@ -321,10 +321,14 @@ def _update_state():
     _update_btc_candles()
     _update_eth_candles()
 
+
+_update_state()
+
 # testing
 if __name__ == '__main__':
     # print(get_product_info('BTC-GBP'))
     # print(get_products())
     # print(create_order('buy', 'BTC-GBP', '0.1'))
-    # print(wallet)
-    print(_get_candles('BTC-GBP'))
+    print(wallet)
+    print(last_10_trades)
+    print(btc_price_history)
