@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime
 import time
 from itertools import islice
 
@@ -80,6 +81,11 @@ def google_official_search(
 
         # Initialize the Custom Search API service
         service = build("customsearch", "v1", developerKey=api_key)
+
+        # ensure any articles are recent by limiting to results from the past 1 month
+        now = datetime.now()
+        one_month_ago = now.replace(month=now.month-1)
+        query = f"{query} after:{one_month_ago.strftime('%Y-%m-%d')}"
 
         # Send the search query and retrieve the results
         result = (
