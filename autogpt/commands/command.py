@@ -58,6 +58,9 @@ class CommandRegistry:
 
     def __init__(self):
         self.commands = {}
+        self.metrics = {
+            "count": {}
+        }
 
     def _import_module(self, module_name: str) -> Any:
         return importlib.import_module(module_name)
@@ -71,6 +74,7 @@ class CommandRegistry:
                 f"Command '{cmd.name}' already registered and will be overwritten!"
             )
         self.commands[cmd.name] = cmd
+        self.metrics["count"][cmd.name] = 0
 
     def unregister(self, command_name: str):
         if command_name in self.commands:
@@ -94,7 +98,14 @@ class CommandRegistry:
         if command_name not in self.commands:
             raise KeyError(f"Command '{command_name}' not found in registry.")
         command = self.commands[command_name]
+        self.metrics["count"][command_name] += 1
+
+        self.log_metrics()
         return command(**kwargs)
+
+    def log_metrics(self) -> None:
+        count_list = [f"{k}={v}" for k, v in self.metrics["count"].items()].sort()
+        logger.info(f"Running call metrics: {count_list}")
 
     def command_prompt(self) -> str:
         """
