@@ -116,20 +116,22 @@ def create_sell_order(product_id: str, base_size: str) -> str:
 
 
 @command(
-    "no_order",
-    "Choose not to make any trades for 30 minutes",
-    '',
+    "no_action",
+    "Choose not to take any actions or make any trades for up to 120 minutes",
+    '"minutes": "<minutes>"',
     ENABLE,
     ENABLE_MSG,
 )
-def no_order() -> str:
-    print("sleeping for 30 minutes...")
-    time.sleep(30 * 60)
+def no_action(minutes: int) -> str:
+    if minutes < 1 or minutes > 120:
+        return "Invalid number of minutes to wait. Must be in range [1, 120]"
+
+    print(f"sleeping for {minutes} minutes...")
+    time.sleep(minutes * 60)
     print("Waking up again")
 
     _update_state()
-
-    return "No order created"
+    return f"Finished waiting for {minutes} minutes"
 
 
 @command(
@@ -328,6 +330,59 @@ def _update_state():
 
 _update_state()
 
+
+# WIP
+def average_price(filled_orders: List[str]) -> Dict[str, float]:
+    buy_price_sum = {}  # A dictionary to store the sum of prices for each product.
+    buy_count = {}  # A dictionary to store the buy_count of transactions for each product.
+
+    sell_price_sum = {}  # A dictionary to store the sum of prices for each product.
+    sell_count = {}  # A dictionary to store the buy_count of transactions for each product.
+
+    for order in filled_orders:
+        order_info = order.split()  # Split the order string to extract information.
+        side = order_info[1]  # The side is at index 1.
+        product_id = order_info[3]  # The product ID is at index 3.
+        price = float(order_info[5])  # The price is at index 5.
+
+        if side == "SELL":
+            if product_id not in sell_price_sum:
+                sell_price_sum[product_id] = 0
+                sell_count[product_id] = 0
+
+            sell_price_sum[product_id] += price
+            sell_count[product_id] += 1
+            continue
+
+        if side == "BUY":
+            if product_id not in buy_price_sum:
+                buy_price_sum[product_id] = 0
+                buy_count[product_id] = 0
+
+            buy_price_sum[product_id] += price
+            buy_count[product_id] += 1
+
+    # Calculate the average price for each product.
+    # TODO: do buy/sell
+    average_prices_buy = {product_id: buy_price_sum[product_id] / buy_count[product_id] for product_id in buy_price_sum}
+    average_prices_sell = {product_id: sell_price_sum[product_id] / sell_count[product_id] for product_id in sell_price_sum}
+
+    return average_prices_buy, average_prices_sell
+
+
+# WIP
+def get_trade_price_data() -> None:
+    # Get the last 10 filled orders.
+    filled_orders = _get_last_filled_orders(limit=50)
+
+    # Calculate the average prices.
+    average_prices = average_price(filled_orders)
+
+    # Print the average prices.
+    for product_id, avg_price in average_prices.items():
+        print(f"The average price of {product_id} is {avg_price}")
+
+
 # testing
 if __name__ == '__main__':
     # print(get_product_info('BTC-GBP'))
@@ -336,3 +391,5 @@ if __name__ == '__main__':
     print(wallet)
     print(last_10_trades)
     print(btc_price_history)
+
+    # get_trade_price_data()
