@@ -122,7 +122,11 @@ def create_sell_order(product_id: str, base_size: str) -> str:
     ENABLE,
     ENABLE_MSG,
 )
-def no_action(minutes: int) -> str:
+def no_action(minutes: str) -> str:
+    if not minutes.isnumeric():
+        return "Invalid number of minutes to wait. Must be an integer"
+
+    minutes = int(minutes)
     if minutes < 1 or minutes > 120:
         return "Invalid number of minutes to wait. Must be in range [1, 120]"
 
