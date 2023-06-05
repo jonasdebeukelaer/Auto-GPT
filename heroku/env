@@ -19,20 +19,6 @@ AI_SETTINGS_FILE=ai_settings.yaml
 # EXIT_KEY=n
 
 ## DISABLED_COMMAND_CATEGORIES - The list of categories of commands that are disabled. Each of the below are an option:
-## autogpt.commands.analyze_code
-## autogpt.commands.audio_text
-## autogpt.commands.execute_code
-## autogpt.commands.file_operations
-## autogpt.commands.git_operations
-## autogpt.commands.google_search
-## autogpt.commands.image_gen
-## autogpt.commands.improve_code
-## autogpt.commands.twitter
-## autogpt.commands.web_selenium
-## autogpt.commands.write_tests
-## autogpt.app
-## autogpt.commands.task_statuses
-## For example, to disable coding related features, uncomment the next line
 DISABLED_COMMAND_CATEGORIES="autogpt.commands.analyze_code,autogpt.commands.execute_code,
 ,autogpt.commands.git_operations,autogpt.commands.improve_code,autogpt.commands.write_tests,
 ,autogpt.commands.audio_text,autogpt.commands.image_gen,autogpt.commands.twitter"
@@ -45,7 +31,7 @@ DISABLED_COMMAND_CATEGORIES="autogpt.commands.analyze_code,autogpt.commands.exec
 ## OPENAI_API_KEY - OpenAI API Key (Example: my-openai-api-key)
 ## TEMPERATURE - Sets temperature in OpenAI (Default: 0)
 ## USE_AZURE - Use Azure OpenAI or not (Default: False)
-# OPENAI_API_KEY=
+# OPENAI_API_KEY=(via heroku secrets)
 TEMPERATURE=0
 USE_AZURE=False
 
@@ -143,8 +129,8 @@ USE_WEB_BROWSER=chrome
 ### GOOGLE
 ## GOOGLE_API_KEY - Google API key (Example: my-google-api-key)
 ## CUSTOM_SEARCH_ENGINE_ID - Custom search engine ID (Example: my-custom-search-engine-id)
-#GOOGLE_API_KEY=
-#CUSTOM_SEARCH_ENGINE_ID=
+#GOOGLE_API_KEY=(via heroku secrets)
+#CUSTOM_SEARCH_ENGINE_ID=(via heroku secrets)
 
 ################################################################################
 ### TTS PROVIDER
@@ -173,5 +159,5 @@ USE_WEB_BROWSER=chrome
 # secondary account
 COINBASE_ENABLED=true
 COINBASE_IS_SANDBOX=false
-# COINBASE_API_KEY=-
-# COINBASE_API_SECRET=-
+# COINBASE_API_KEY=(via heroku secrets)
+# COINBASE_API_SECRET=(via heroku secrets)
