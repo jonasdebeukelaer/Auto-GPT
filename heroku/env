@@ -78,8 +78,8 @@ FAST_LLM_MODEL=gpt-3.5-turbo
 ## redis - Redis (if configured)
 ## milvus - Milvus (if configured - also works with Zilliz)
 ## MEMORY_INDEX - Name of index created in Memory backend (Default: auto-gpt)
-MEMORY_BACKEND=milvus
-MEMORY_INDEX=auto-gpt
+MEMORY_BACKEND=local
+#MEMORY_INDEX=auto-gpt
 
 ### MILVUS
 ## MILVUS_ADDR - Milvus remote address (e.g. localhost:19530, https://xxx-xxxx.xxxx.xxxx.zillizcloud.com:443)
@@ -88,11 +88,11 @@ MEMORY_INDEX=auto-gpt
 ## MILVUS_SECURE - True to enable TLS. (Default: False)
 ##   Setting MILVUS_ADDR to a `https://` URL will override this setting.
 ## MILVUS_COLLECTION - Milvus collection, change it if you want to start a new memory and retain the old memory.
-MILVUS_ADDR=https://in01-47c8bc2f59227e3.aws-us-east-2.vectordb.zillizcloud.com:19542
-MILVUS_USERNAME=db_admin
-# MILVUS_PASSWORD=(via heroku secrets)
-MILVUS_SECURE=True
-MILVUS_COLLECTION=autogpt
+#MILVUS_ADDR=https://in01-47c8bc2f59227e3.aws-us-east-2.vectordb.zillizcloud.com:19542
+#MILVUS_USERNAME=db_admin
+## MILVUS_PASSWORD=(via heroku secrets)
+#MILVUS_SECURE=True
+#MILVUS_COLLECTION=autogpt
 
 ################################################################################
 ### IMAGE GENERATION PROVIDER
