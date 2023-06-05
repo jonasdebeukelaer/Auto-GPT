@@ -25,8 +25,8 @@ ENABLE_MSG = "Enable coinbase in config and disable sandbox"
 s = Session()
 wallet = []
 last_10_trades = []
-btc_price_history = []
-eth_price_history = []  # TODO: include this in context if there's enough context space
+btc_price_history = []  # TODO: include this in context?
+eth_price_history = []  # TODO: include this in context?
 
 
 @command(
