@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from autogpt.agent.agent import Agent
 
-from autogpt.commands.coinbase import wallet
+from autogpt.commands.coinbase import wallet, last_10_trades
 from autogpt.config import Config
 from autogpt.llm.api_manager import ApiManager
 from autogpt.llm.base import ChatSequence, Message
@@ -64,11 +64,11 @@ def chat_with_ai(
         model,
         [
             Message("system", system_prompt),
-            Message("system", f"The current time and date is {time.strftime('%c')}"),
-            # Message(
-            #     "system",
-            #     f"This reminds you of these events from your past:\n{relevant_memory}\n\n",
-            # ),
+            Message("system", f"Current datetime: {time.strftime('%c')}"),
+            Message("system", f"Your coinbase wallet: {wallet}"),
+            # TODO: Message("system", f"Your coinbase wallet value in GBP for the last 10 days: {wallet_value}"),
+            Message("system", "Coinbase fees are 0.5%"),
+            Message("system", f"Your last 10 trades were: ({last_10_trades})"),
         ],
     )
 

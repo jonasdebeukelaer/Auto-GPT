@@ -64,7 +64,7 @@ FAST_LLM_MODEL=gpt-3.5-turbo
 ## redis - Redis (if configured)
 ## milvus - Milvus (if configured - also works with Zilliz)
 ## MEMORY_INDEX - Name of index created in Memory backend (Default: auto-gpt)
-MEMORY_BACKEND=local
+MEMORY_BACKEND=json_file
 #MEMORY_INDEX=auto-gpt
 
 ### MILVUS

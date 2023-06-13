@@ -96,33 +96,33 @@ def get_product_info(product_id: str) -> str:
 @command(
     "create_buy_order",
     "Buy a cryptocurrency",
-    '"product_id": "<product_id>", "quote_size": "<quote_size>"',
+    '"product_id": "<product_id>", "quote_size": "<quote_size>", "reason": "<reason>"',
     ENABLE,
     ENABLE_MSG,
 )
-def create_buy_order(product_id: str, quote_size: str) -> str:
-    return _create_order("BUY", product_id, quote_size)
+def create_buy_order(product_id: str, quote_size: str, reason: str) -> str:
+    return _create_order("BUY", product_id, quote_size, reason)
 
 
 @command(
     "create_sell_order",
     "Sell a cryptocurrency",
-    '"product_id": "<product_id>", "base_size": "<base_size>"',
+    '"product_id": "<product_id>", "base_size": "<base_size>", "reason": "<reason>"',
     ENABLE,
     ENABLE_MSG,
 )
-def create_sell_order(product_id: str, base_size: str) -> str:
-    return _create_order("SELL", product_id, base_size)
+def create_sell_order(product_id: str, base_size: str, reason: str) -> str:
+    return _create_order("SELL", product_id, base_size, reason)
 
 
 @command(
     "no_action",
     "Choose not to take any actions or make any trades for up to 120 minutes",
-    '"minutes": "<minutes>"',
+    '"minutes": "<minutes>", "reason": "<reason>"',
     ENABLE,
     ENABLE_MSG,
 )
-def no_action(minutes: str) -> str:
+def no_action(minutes: str, reason: str) -> str:
     if not minutes.isnumeric():
         return "Invalid number of minutes to wait. Must be an integer"
 
@@ -130,7 +130,7 @@ def no_action(minutes: str) -> str:
     if minutes < 1 or minutes > 120:
         return "Invalid number of minutes to wait. Must be in range [1, 120]"
 
-    print(f"sleeping for {minutes} minutes...")
+    print(f"sleeping for {minutes} minutes. Reason: '{reason}'.")
     time.sleep(minutes * 60)
     print("Waking up again")
 
@@ -285,7 +285,9 @@ def _get_all_wallets() -> Dict[str, List[Any]]:
     return resp.json()
 
 
-def _create_order(side: str, product_id: str, size: str) -> str:
+def _create_order(side: str, product_id: str, size: str, reason: str) -> str:
+    logger.info(f"Reason for {side} order: '{reason}'")
+
     if regex.match(r"^[A-Z]{3}-[A-Z]{3}$", product_id) is None:
         return f"Invalid product id: {product_id}. Should have form '<ticker1>-<ticker2>'"
 
