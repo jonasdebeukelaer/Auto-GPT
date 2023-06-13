@@ -399,3 +399,4 @@ if __name__ == '__main__':
     print(btc_price_history)
 
     # get_trade_price_data()
+    # TODO: add some tests finally

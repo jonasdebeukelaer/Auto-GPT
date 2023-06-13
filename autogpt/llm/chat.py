@@ -66,7 +66,6 @@ def chat_with_ai(
             Message("system", system_prompt),
             Message("system", f"Current datetime: {time.strftime('%c')}"),
             Message("system", f"Your coinbase wallet: {wallet}"),
-            # TODO: Message("system", f"Your coinbase wallet value in GBP for the last 10 days: {wallet_value}"),
             Message("system", "Coinbase fees are 0.5%"),
             Message("system", f"Your last 10 trades were: ({last_10_trades})"),
         ],
