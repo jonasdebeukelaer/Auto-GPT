@@ -23,6 +23,9 @@ DISABLED_COMMAND_CATEGORIES="autogpt.commands.analyze_code,autogpt.commands.exec
 ,autogpt.commands.git_operations,autogpt.commands.improve_code,autogpt.commands.write_tests,
 ,autogpt.commands.audio_text,autogpt.commands.image_gen,autogpt.commands.twitter"
 
+## PROMPT_SETTINGS_FILE - Specifies which Prompt Settings file to use (defaults to prompt_settings.yaml)
+PROMPT_SETTINGS_FILE=prompt_settings.yaml
+
 ################################################################################
 ### LLM PROVIDER
 ################################################################################
