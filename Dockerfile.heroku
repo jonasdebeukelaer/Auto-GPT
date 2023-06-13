@@ -34,5 +34,6 @@ FROM autogpt-release AS auto-gpt
 
 COPY heroku/env .env
 COPY heroku/run.sh .
+COPY prompt_settings.yaml .
 
 CMD ["./run.sh"]
