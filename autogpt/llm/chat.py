@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from autogpt.agent.agent import Agent
 
-from autogpt.commands.coinbase import wallet, last_10_trades
+from autogpt.coinbase import wallet, last_10_trades
 from autogpt.config import Config
 from autogpt.llm.api_manager import ApiManager
 from autogpt.llm.base import ChatSequence, Message
