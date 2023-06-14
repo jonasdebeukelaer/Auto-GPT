@@ -41,7 +41,7 @@ def update_eth_price_history():
 
 
 def get_candles(product_id: str, look_back_days: int = 3) -> List[Dict[str, str]]:
-    if regex.match(r"^[A-Z]{3,4}-[A-Z]{3,4}$", product_id) is None:
+    if not _is_valid_product_id_format(product_id):
         raise ValueError(f"Invalid product id: {product_id}")
 
     now = datetime.utcnow()
@@ -79,7 +79,7 @@ def _update_last_10_trades() -> None:
 
 
 def get_last_filled_orders(product_id: Union[str, None] = None, limit: int = 10) -> List[str]:
-    if product_id is not None and regex.match(r"^[A-Z]{3,4}-[A-Z]{3,4}$", product_id) is None:
+    if product_id is not None and not _is_valid_product_id_format(product_id):
         raise ValueError(f"Invalid product id: {product_id}")
 
     params = {"order_status": "FILLED", "limit": limit}
@@ -151,10 +151,14 @@ def _get_all_wallets() -> Dict[str, List[Any]]:
     return resp.json()
 
 
+def _is_valid_product_id_format(product_id: str) -> bool:
+    return regex.match(r"^[A-Z]{3,4}-[A-Z]{3,4}$", product_id) is not None
+
+
 def create_order(side: str, product_id: str, size: str, reason: str) -> str:
     logger.info(f"Reason for {side} order: '{reason}'")
 
-    if regex.match(r"^[A-Z]{3}-[A-Z]{3}$", product_id) is None:
+    if not _is_valid_product_id_format:
         return f"Invalid product id: {product_id}. Should have form '<ticker1>-<ticker2>'"
 
     side = side.upper()
