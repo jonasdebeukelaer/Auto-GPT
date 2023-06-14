@@ -6,6 +6,7 @@ from os.path import join
 from typing import Dict, List, Any, Union
 from urllib.parse import urlparse
 
+from autogpt.agent import Agent
 from autogpt.commands.command import command
 from regex import regex
 from requests import Session, Request, Response
@@ -36,7 +37,7 @@ eth_price_history = []  # TODO: include this in context?
     ENABLE,
     ENABLE_MSG,
 )
-def get_products() -> str:
+def get_products(agent: Agent) -> str:
     request = Request('GET', join(BASE_URL, 'products'))
     resp = _make_request(request)
 
@@ -59,7 +60,7 @@ def get_products() -> str:
     ENABLE,
     ENABLE_MSG,
 )
-def get_product_info(product_id: str) -> str:
+def get_product_info(product_id: str, agent: Agent) -> str:
     if regex.match(r"^[A-Z]{3,4}-[A-Z]{3,4}$", product_id) is None:
         return f"Invalid product id: {product_id}"
 
@@ -100,7 +101,7 @@ def get_product_info(product_id: str) -> str:
     ENABLE,
     ENABLE_MSG,
 )
-def create_buy_order(product_id: str, quote_size: str, reason: str) -> str:
+def create_buy_order(product_id: str, quote_size: str, reason: str, agent: Agent) -> str:
     return _create_order("BUY", product_id, quote_size, reason)
 
 
@@ -111,7 +112,7 @@ def create_buy_order(product_id: str, quote_size: str, reason: str) -> str:
     ENABLE,
     ENABLE_MSG,
 )
-def create_sell_order(product_id: str, base_size: str, reason: str) -> str:
+def create_sell_order(product_id: str, base_size: str, reason: str, agent: Agent) -> str:
     return _create_order("SELL", product_id, base_size, reason)
 
 
@@ -122,7 +123,7 @@ def create_sell_order(product_id: str, base_size: str, reason: str) -> str:
     ENABLE,
     ENABLE_MSG,
 )
-def no_action(minutes: str, reason: str) -> str:
+def no_action(minutes: str, reason: str, agent: Agent) -> str:
     if not minutes.isnumeric():
         return "Invalid number of minutes to wait. Must be an integer"
 
@@ -145,7 +146,7 @@ def no_action(minutes: str, reason: str) -> str:
     ENABLE,
     ENABLE_MSG,
 )
-def get_last_10_trades_for_product(product_id: str) -> str:
+def get_last_10_trades_for_product(product_id: str, agent: Agent) -> str:
     return f"Last 10 trades for this product: {_get_last_filled_orders(product_id)}"
 
 
@@ -156,7 +157,7 @@ def get_last_10_trades_for_product(product_id: str) -> str:
     ENABLE,
     ENABLE_MSG,
 )
-def get_price_history(product_id: str) -> str:
+def get_price_history(product_id: str, agent: Agent) -> str:
     return f"Price info for last 3 days for {product_id}: {_get_candles(product_id)}"
 
 
