@@ -160,11 +160,11 @@ def get_hyperlinks(url: str, agent: Agent) -> Union[str, List[str]]:
     return scrape_links(url, agent)
 
 
-@command(
-    "start_agent",
-    "Start GPT Agent",
-    '"name": "<name>", "task": "<short_task_desc>", "prompt": "<prompt>"',
-)
+# @command(
+#     "start_agent",
+#     "Start GPT Agent",
+#     '"name": "<name>", "task": "<short_task_desc>", "prompt": "<prompt>"',
+# )
 def start_agent(name: str, task: str, prompt: str, agent: Agent, model=None) -> str:
     """Start an agent with a given name, task, and prompt
 
@@ -199,7 +199,7 @@ def start_agent(name: str, task: str, prompt: str, agent: Agent, model=None) -> 
     return f"Agent {name} created with key {key}. First response: {agent_response}"
 
 
-@command("message_agent", "Message GPT Agent", '"key": "<key>", "message": "<message>"')
+# @command("message_agent", "Message GPT Agent", '"key": "<key>", "message": "<message>"')
 def message_agent(key: str, message: str, agent: Agent) -> str:
     """Message an agent with a given key and message"""
     # Check if the key is a valid integer
@@ -214,7 +214,7 @@ def message_agent(key: str, message: str, agent: Agent) -> str:
     return agent_response
 
 
-@command("list_agents", "List GPT Agents", "() -> str")
+# @command("list_agents", "List GPT Agents", "() -> str")
 def list_agents(agent: Agent) -> str:
     """List all agents
 
@@ -226,7 +226,7 @@ def list_agents(agent: Agent) -> str:
     )
 
 
-@command("delete_agent", "Delete GPT Agent", '"key": "<key>"')
+# @command("delete_agent", "Delete GPT Agent", '"key": "<key>"')
 def delete_agent(key: str, agent: Agent) -> str:
     """Delete an agent with a given key
 
