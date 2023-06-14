@@ -305,8 +305,12 @@ class Agent:
                     str(self.history.summary_message()), self.config.fast_llm_model
                 )
                 if result_tlength + memory_tlength + 600 > self.fast_token_limit:
-                    result = f"Failure: command {command_name} returned too much output. \
-                        Do not execute this command again with the same arguments."
+                    if command_name == "get_hyperlinks":
+                        result = f"Failure: command {command_name} returned too much output. \
+                            Do not execute this command again with the same url."
+                    else:
+                        result = f"Failure: command {command_name} returned too much output. \
+                            Do not execute this command again with the same argument values."
 
                 for plugin in self.config.plugins:
                     if not plugin.can_handle_post_command():
