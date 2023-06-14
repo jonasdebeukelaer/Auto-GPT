@@ -6,7 +6,7 @@ from os.path import join
 from typing import Dict, List, Any, Union
 from urllib.parse import urlparse
 
-from autogpt.agent import Agent
+from autogpt.agent.agent import Agent
 from autogpt.commands.command import command
 from regex import regex
 from requests import Session, Request, Response
