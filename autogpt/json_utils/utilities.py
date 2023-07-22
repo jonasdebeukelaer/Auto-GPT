@@ -2,18 +2,17 @@
 import ast
 import json
 import os.path
-from typing import Any
+from typing import Any, Literal
 
 from jsonschema import Draft7Validator
 
 from autogpt.config import Config
 from autogpt.logs import logger
 
-CFG = Config()
 LLM_DEFAULT_RESPONSE_FORMAT = "llm_response_format_1"
 
 
-def extract_json_from_response(response_content: str) -> dict:
+def extract_dict_from_response(response_content: str) -> dict[str, Any]:
     # Sometimes the response includes the JSON in a code block with ```
     if response_content.startswith("```") and response_content.endswith("```"):
         # Discard the first and last ```, then re-join in case the response naturally included ```
@@ -23,22 +22,30 @@ def extract_json_from_response(response_content: str) -> dict:
     try:
         return ast.literal_eval(response_content)
     except BaseException as e:
-        logger.error(f"Error parsing JSON response with literal_eval {e}")
+        logger.info(f"Error parsing JSON response with literal_eval {e}")
+        logger.debug(f"Invalid JSON received in response: {response_content}")
         # TODO: How to raise an error here without causing the program to exit?
         return {}
 
 
 def llm_response_schema(
-    schema_name: str = LLM_DEFAULT_RESPONSE_FORMAT,
+    config: Config, schema_name: str = LLM_DEFAULT_RESPONSE_FORMAT
 ) -> dict[str, Any]:
     filename = os.path.join(os.path.dirname(__file__), f"{schema_name}.json")
     with open(filename, "r") as f:
-        return json.load(f)
+        try:
+            json_schema = json.load(f)
+        except Exception as e:
+            raise RuntimeError(f"Failed to load JSON schema: {e}")
+    if config.openai_functions:
+        del json_schema["properties"]["command"]
+        json_schema["required"].remove("command")
+    return json_schema
 
 
-def validate_json(
-    json_object: object, schema_name: str = LLM_DEFAULT_RESPONSE_FORMAT
-) -> bool:
+def validate_dict(
+    object: object, config: Config, schema_name: str = LLM_DEFAULT_RESPONSE_FORMAT
+) -> tuple[Literal[True], None] | tuple[Literal[False], list]:
     """
     :type schema_name: object
     :param schema_name: str
@@ -46,50 +53,23 @@ def validate_json(
 
     Returns:
         bool: Whether the json_object is valid or not
+        list: Errors found in the json_object, or None if the object is valid
     """
-    schema = llm_response_schema(schema_name)
+    schema = llm_response_schema(config, schema_name)
     validator = Draft7Validator(schema)
 
-    if errors := sorted(validator.iter_errors(json_object), key=lambda e: e.path):
+    if errors := sorted(validator.iter_errors(object), key=lambda e: e.path):
         for error in errors:
-            logger.error(f"JSON Validation Error: {error}")
+            logger.debug(f"JSON Validation Error: {error}")
 
-        if CFG.debug_mode:
-            logger.error(
-                json.dumps(json_object, indent=4)
-            )  # Replace 'json_object' with the variable containing the JSON data
+        if config.debug_mode:
+            logger.error(json.dumps(object, indent=4))
             logger.error("The following issues were found:")
 
             for error in errors:
                 logger.error(f"Error: {error.message}")
-        return False
+        return False, errors
 
     logger.debug("The JSON object is valid.")
 
-    return True
-
-
-def validate_json_string(json_string: str, schema_name: str) -> dict | None:
-    """
-    :type schema_name: object
-    :param schema_name: str
-    :type json_object: object
-    """
-
-    try:
-        json_loaded = json.loads(json_string)
-        if not validate_json(json_loaded, schema_name):
-            return None
-        return json_loaded
-    except:
-        return None
-
-
-def is_string_valid_json(json_string: str, schema_name: str) -> bool:
-    """
-    :type schema_name: object
-    :param schema_name: str
-    :type json_object: object
-    """
-
-    return validate_json_string(json_string, schema_name) is not None
+    return True, None

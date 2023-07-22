@@ -9,16 +9,22 @@ import openai
 import requests
 from PIL import Image
 
-from autogpt.agent.agent import Agent
-from autogpt.commands.command import command
+from autogpt.agents.agent import Agent
+from autogpt.command_decorator import command
 from autogpt.logs import logger
 
 
 @command(
     "generate_image",
-    "Generate Image",
-    '"prompt": "<prompt>"',
-    lambda config: config.image_provider,
+    "Generates an Image",
+    {
+        "prompt": {
+            "type": "string",
+            "description": "The prompt used to generate the image",
+            "required": True,
+        },
+    },
+    lambda config: bool(config.image_provider),
     "Requires a image provider to be set.",
 )
 def generate_image(prompt: str, agent: Agent, size: int = 256) -> str:
@@ -31,7 +37,7 @@ def generate_image(prompt: str, agent: Agent, size: int = 256) -> str:
     Returns:
         str: The filename of the image
     """
-    filename = f"{agent.config.workspace_path}/{str(uuid.uuid4())}.jpg"
+    filename = agent.config.workspace_path / f"{str(uuid.uuid4())}.jpg"
 
     # DALL-E
     if agent.config.image_provider == "dalle":
@@ -175,7 +181,7 @@ def generate_image_with_sd_webui(
             "negative_prompt": negative_prompt,
             "sampler_index": "DDIM",
             "steps": 20,
-            "cfg_scale": 7.0,
+            "config_scale": 7.0,
             "width": size,
             "height": size,
             "n_iter": 1,

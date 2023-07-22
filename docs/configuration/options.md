@@ -5,20 +5,18 @@ Configuration is controlled through the `Config` object. You can set configurati
 ## Environment Variables
 
 - `AI_SETTINGS_FILE`: Location of AI Settings file. Default: ai_settings.yaml
-- `ALLOWLISTED_PLUGINS`: List of plugins allowed. Optional.
 - `AUDIO_TO_TEXT_PROVIDER`: Audio To Text Provider. Only option currently is `huggingface`. Default: huggingface
 - `AUTHORISE_COMMAND_KEY`: Key response accepted when authorising commands. Default: y
 - `BROWSE_CHUNK_MAX_LENGTH`: When browsing website, define the length of chunks to summarize. Default: 3000
 - `BROWSE_SPACY_LANGUAGE_MODEL`: [spaCy language model](https://spacy.io/usage/models) to use when creating chunks. Default: en_core_web_sm
 - `CHAT_MESSAGES_ENABLED`: Enable chat messages. Optional
-- `DENYLISTED_PLUGINS`: List of plugins not allowed. Optional.
-- `DISABLED_COMMAND_CATEGORIES`: Command categories to disable. Command categories are Python module names, e.g. autogpt.commands.analyze_code. See the directory `autogpt/commands` in the source for all command modules. Default: None
+- `DISABLED_COMMAND_CATEGORIES`: Command categories to disable. Command categories are Python module names, e.g. autogpt.commands.execute_code. See the directory `autogpt/commands` in the source for all command modules. Default: None
 - `ELEVENLABS_API_KEY`: ElevenLabs API Key. Optional.
 - `ELEVENLABS_VOICE_ID`: ElevenLabs Voice ID. Optional.
 - `EMBEDDING_MODEL`: LLM Model to use for embedding tasks. Default: text-embedding-ada-002
 - `EXECUTE_LOCAL_COMMANDS`: If shell commands should be executed locally. Default: False
 - `EXIT_KEY`: Exit key accepted to exit. Default: n
-- `FAST_LLM_MODEL`: LLM Model to use for most tasks. Default: gpt-3.5-turbo
+- `FAST_LLM`: LLM Model to use for most tasks. Default: gpt-3.5-turbo
 - `GITHUB_API_KEY`: [Github API Key](https://github.com/settings/tokens). Optional.
 - `GITHUB_USERNAME`: GitHub Username. Optional.
 - `GOOGLE_API_KEY`: Google API key. Optional.
@@ -34,6 +32,7 @@ Configuration is controlled through the `Config` object. You can set configurati
 - `OPENAI_API_KEY`: *REQUIRED*- Your [OpenAI API Key](https://platform.openai.com/account/api-keys).
 - `OPENAI_ORGANIZATION`: Organization ID in OpenAI. Optional.
 - `PLAIN_OUTPUT`: Plain output, which disables the spinner. Default: False
+- `PLUGINS_CONFIG_FILE`: Path of plugins_config.yaml file. Default: plugins_config.yaml
 - `PROMPT_SETTINGS_FILE`: Location of Prompt Settings file. Default: prompt_settings.yaml
 - `REDIS_HOST`: Redis Host. Default: localhost
 - `REDIS_PASSWORD`: Redis Password. Optional. Default:
@@ -44,7 +43,7 @@ Configuration is controlled through the `Config` object. You can set configurati
 - `SHELL_ALLOWLIST`: List of shell commands that ARE allowed to be executed by Auto-GPT. Only applies if `SHELL_COMMAND_CONTROL` is set to `allowlist`. Default: None
 - `SHELL_COMMAND_CONTROL`: Whether to use `allowlist` or `denylist` to determine what shell commands can be executed (Default: denylist)
 - `SHELL_DENYLIST`: List of shell commands that ARE NOT allowed to be executed by Auto-GPT. Only applies if `SHELL_COMMAND_CONTROL` is set to `denylist`. Default: sudo,su
-- `SMART_LLM_MODEL`: LLM Model to use for "smart" tasks. Default: gpt-3.5-turbo
+- `SMART_LLM`: LLM Model to use for "smart" tasks. Default: gpt-4
 - `STREAMELEMENTS_VOICE`: StreamElements voice to use. Default: Brian
 - `TEMPERATURE`: Value of temperature given to OpenAI. Value from 0 to 2. Lower is more deterministic, higher is more random. See https://platform.openai.com/docs/api-reference/completions/create#completions/create-temperature
 - `TEXT_TO_SPEECH_PROVIDER`: Text to Speech Provider. Options are `gtts`, `macos`, `elevenlabs`, and `streamelements`. Default: gtts
