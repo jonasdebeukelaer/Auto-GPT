@@ -7,6 +7,7 @@ from colorama import Fore, Style
 from git.repo import Repo
 from prompt_toolkit import ANSI, PromptSession
 from prompt_toolkit.history import InMemoryHistory
+from pyrate_limiter import Limiter, RequestRate, Duration
 
 from autogpt.config import Config
 from autogpt.logs import logger
@@ -165,21 +166,13 @@ def markdown_to_ansi_style(markdown: str):
 
 
 def get_legal_warning() -> str:
-    legal_text = """
-## DISCLAIMER AND INDEMNIFICATION AGREEMENT
-### PLEASE READ THIS DISCLAIMER AND INDEMNIFICATION AGREEMENT CAREFULLY BEFORE USING THE AUTOGPT SYSTEM. BY USING THE AUTOGPT SYSTEM, YOU AGREE TO BE BOUND BY THIS AGREEMENT.
-
-## Introduction
-AutoGPT (the "System") is a project that connects a GPT-like artificial intelligence system to the internet and allows it to automate tasks. While the System is designed to be useful and efficient, there may be instances where the System could perform actions that may cause harm or have unintended consequences.
-
-## No Liability for Actions of the System
-The developers, contributors, and maintainers of the AutoGPT project (collectively, the "Project Parties") make no warranties or representations, express or implied, about the System's performance, accuracy, reliability, or safety. By using the System, you understand and agree that the Project Parties shall not be liable for any actions taken by the System or any consequences resulting from such actions.
-
-## User Responsibility and Respondeat Superior Liability
-As a user of the System, you are responsible for supervising and monitoring the actions of the System while it is operating on your
-behalf. You acknowledge that using the System could expose you to potential liability including but not limited to respondeat superior and you agree to assume all risks and liabilities associated with such potential liability.
-
-## Indemnification
-By using the System, you agree to indemnify, defend, and hold harmless the Project Parties from and against any and all claims, liabilities, damages, losses, or expenses (including reasonable attorneys' fees and costs) arising out of or in connection with your use of the System, including, without limitation, any actions taken by the System on your behalf, any failure to properly supervise or monitor the System, and any resulting harm or unintended consequences.
-            """
+    legal_text = """~removed legal warning~"""
     return legal_text
+
+
+def init_think_rate_limiter() -> Limiter:
+    hourly_rate = RequestRate(20, Duration.HOUR)
+    daily_rate = RequestRate(50, Duration.DAY)
+    monthly_rate = RequestRate(1500, Duration.MONTH)
+
+    return Limiter(hourly_rate, daily_rate, monthly_rate)

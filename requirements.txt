@@ -52,6 +52,7 @@ types-Markdown
 types-beautifulsoup4
 types-colorama
 types-Pillow
+pyrate-limiter~=2.10.0
 
 # OpenAI and Generic plugins import
 openapi-python-client==0.13.4
