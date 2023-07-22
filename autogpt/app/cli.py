@@ -61,6 +61,7 @@ import click
     "--workspace-directory",
     "-w",
     type=click.Path(),
+    default=Path.cwd(),
     hidden=True,
 )
 @click.option(
