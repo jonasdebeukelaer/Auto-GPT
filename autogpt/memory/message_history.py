@@ -41,12 +41,12 @@ from the latest development in 1st person past tense and keeping the summary con
 
 Summary So Far:
 """
-{self.summary}
+{summary}
 """
 
 Latest Development:
 """
-{new_events_batch or "Nothing new happened."}
+{new_events}
 """
 '''
 
