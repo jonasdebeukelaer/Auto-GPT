@@ -32,18 +32,21 @@ class MessageHistory(ChatSequence):
     summary: str = "I was created"
     last_trimmed_index: int = 0
 
-    SUMMARIZATION_PROMPT = '''Your task is to create a concise running summary of actions and information results in the provided text, focusing on key and potentially important information to remember.
+    SUMMARIZATION_PROMPT = '''Your task is to create a concise running summary of actions and information results in the 
+provided text, including only important market news, dates, sentiment and numerical information which will 
+help you make excellent crypto trading decisions.
 
-You will receive the current summary and your latest actions. Combine them, adding relevant key information from the latest development in 1st person past tense and keeping the summary concise.
+You will receive the current summary and your latest actions. Combine them, adding relevant key information 
+from the latest development in 1st person past tense and keeping the summary concise.
 
 Summary So Far:
 """
-{summary}
+{self.summary}
 """
 
 Latest Development:
 """
-{new_events}
+{new_events_batch or "Nothing new happened."}
 """
 '''
 

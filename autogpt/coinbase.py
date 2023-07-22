@@ -16,10 +16,15 @@ import time
 from autogpt.config import Config
 from autogpt.logs import logger
 
-CFG = Config()
+CFG = Config() # init with empty config
 BASE_URL = "https://api.coinbase.com/api/v3/brokerage"
-ENABLE = CFG.enable_coinbase and not CFG.coinbase_is_sandbox
+ENABLE = False
 ENABLE_MSG = "Enable coinbase in config and disable sandbox"
+
+def init_config(config: Config) -> None:
+    global CFG, ENABLE
+    CFG = config
+    ENABLE = CFG.coinbase_api_key is not None and CFG.coinbase_api_secret is not None
 
 s = Session()
 wallet = []
@@ -156,8 +161,6 @@ def _is_valid_product_id_format(product_id: str) -> bool:
 
 
 def create_order(side: str, product_id: str, size: str, reason: str) -> str:
-    logger.info(f"Reason for {side} order: '{reason}'")
-
     if not _is_valid_product_id_format:
         return f"Invalid product id: {product_id}. Should have form '<ticker1>-<ticker2>'"
 
@@ -183,6 +186,12 @@ def create_order(side: str, product_id: str, size: str, reason: str) -> str:
     resp = make_request(request)
 
     if not resp.ok:
+
+        # TODO: handle INVALID_SIZE_PRECISION error
+        if resp.json()["error"] == "INVALID_SIZE_PRECISION" and resp.json()["message"] == "Too many decimals in order amount":
+            current_precision = int(size.split(".")[1])
+            return create_order(side, product_id, to_sig_digits(size, current_precision-1), reason)
+
         return f"Error creating order: {resp.text}"
 
     jsn = resp.json()
@@ -202,13 +211,12 @@ def update_state():
     _update_last_10_trades()
 
 
-update_state()
+# update_state()
 
 # testing
 if __name__ == '__main__':
     print(wallet)
     print(last_10_trades)
-    print(btc_price_history)
 
     # get_trade_price_data()
     # TODO: add some tests finally

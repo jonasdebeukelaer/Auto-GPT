@@ -5,25 +5,25 @@ from os.path import join
 from typing import Dict, List
 
 from autogpt import coinbase
-from autogpt.agent.agent import Agent
-from autogpt.commands.command import command
+from autogpt.agents.agent import Agent
+from autogpt.command_decorator import command
 from regex import regex
 from requests import Request
 import time
 
 from autogpt.config import Config
 
-CFG = Config()
 BASE_URL = "https://api.coinbase.com/api/v3/brokerage"
-ENABLE = CFG.enable_coinbase and not CFG.coinbase_is_sandbox
 ENABLE_MSG = "Enable coinbase in config and disable sandbox"
 
+def _enable_command(config: Config) -> bool:
+    return config.coinbase_enabled
 
 @command(
     "get_products",
     "Get a list of the available currency pairs for trading.",
-    "",
-    ENABLE,
+    {},
+    _enable_command,
     ENABLE_MSG,
 )
 def get_products(agent: Agent) -> str:
@@ -45,8 +45,14 @@ def get_products(agent: Agent) -> str:
 @command(
     "get_product_info",
     "Get cryptocurrency product info including its price",
-    '"product_id": "<product_id>"',
-    ENABLE,
+    {
+        "product_id": {
+            "type": "string",
+            "description": "The product id to get info for",
+            "required": True,
+        }
+    },
+    _enable_command,
     ENABLE_MSG,
 )
 def get_product_info(product_id: str, agent: Agent) -> str:
@@ -86,8 +92,24 @@ def get_product_info(product_id: str, agent: Agent) -> str:
 @command(
     "create_buy_order",
     "Buy a cryptocurrency",
-    '"product_id": "<product_id>", "quote_size": "<quote_size>", "reason": "<reason>"',
-    ENABLE,
+    {
+        "product_id": {
+            "type": "string",
+            "description": "The product id to get info for",
+            "required": True,
+        },
+        "quote_size": {
+            "type": "string",
+            "description": "The amount of quote currency to spend",
+            "required": True,
+        },
+        "reason": {
+            "type": "string",
+            "description": "The reason for making this trade",
+            "required": True,
+        },
+    },
+    _enable_command,
     ENABLE_MSG,
 )
 def create_buy_order(product_id: str, quote_size: str, reason: str, agent: Agent) -> str:
@@ -97,8 +119,24 @@ def create_buy_order(product_id: str, quote_size: str, reason: str, agent: Agent
 @command(
     "create_sell_order",
     "Sell a cryptocurrency",
-    '"product_id": "<product_id>", "base_size": "<base_size>", "reason": "<reason>"',
-    ENABLE,
+    {
+        "product_id": {
+            "type": "string",
+            "description": "The product id to get info for",
+            "required": True,
+        },
+        "base_size": {
+            "type": "string",
+            "description": "The amount of base currency to sell",
+            "required": True,
+        },
+        "reason": {
+            "type": "string",
+            "description": "The reason for making this trade",
+            "required": True,
+        },
+    },
+    _enable_command,
     ENABLE_MSG,
 )
 def create_sell_order(product_id: str, base_size: str, reason: str, agent: Agent) -> str:
@@ -108,8 +146,19 @@ def create_sell_order(product_id: str, base_size: str, reason: str, agent: Agent
 @command(
     "no_action",
     "Choose not to take any actions or make any trades for up to 120 minutes",
-    '"minutes": "<minutes>", "reason": "<reason>"',
-    ENABLE,
+    {
+        "minutes": {
+            "type": "string",
+            "description": "The number of minutes to wait",
+            "required": True,
+        },
+        "reason": {
+            "type": "string",
+            "description": "The reason for waiting",
+            "required": True,
+        },
+    },
+    _enable_command,
     ENABLE_MSG,
 )
 def no_action(minutes: str, reason: str, agent: Agent) -> str:
@@ -131,8 +180,14 @@ def no_action(minutes: str, reason: str, agent: Agent) -> str:
 @command(
     "get_last_10_trades_for_product",
     "Get last 10 trades you have made for a given product",
-    '"product_id": "<product_id>"',
-    ENABLE,
+    {
+        "product_id": {
+            "type": "string",
+            "description": "The product id to get info for",
+            "required": True,
+        }
+    },
+    _enable_command,
     ENABLE_MSG,
 )
 def get_last_10_trades_for_product(product_id: str, agent: Agent) -> str:
@@ -142,8 +197,14 @@ def get_last_10_trades_for_product(product_id: str, agent: Agent) -> str:
 @command(
     "get_price_history",
     "Get price info for last 3 days for a product",
-    '"product_id": "<product_id>"',
-    ENABLE,
+    {
+        "product_id": {
+            "type": "string",
+            "description": "The product id to get info for",
+            "required": True,
+        }
+    },
+    _enable_command,
     ENABLE_MSG,
 )
 def get_price_history(product_id: str, agent: Agent) -> str:

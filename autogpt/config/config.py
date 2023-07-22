@@ -96,6 +96,13 @@ class Config(SystemSettings, arbitrary_types_allowed=True):
     selenium_headless: bool = True
     user_agent: str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36"
 
+    #####################
+    # Coinbase Settings #
+    #####################
+    coinbase_enabled: bool = False
+    coinbase_api_key: str = None
+    coinbase_api_secret: str = None
+
     ###################
     # Plugin Settings #
     ###################
@@ -258,6 +265,10 @@ class ConfigBuilder(Configurable[Config]):
             "plugins_dir": os.getenv("PLUGINS_DIR"),
             "plugins_config_file": os.getenv("PLUGINS_CONFIG_FILE"),
             "chat_messages_enabled": os.getenv("CHAT_MESSAGES_ENABLED") == "True",
+
+            "coinbase_enabled": os.getenv("COINBASE_ENABLED", "False").lower() == "true",
+            "coinbase_api_key": os.getenv("COINBASE_API_KEY"),
+            "coinbase_api_secret": os.getenv("COINBASE_API_SECRET"),
         }
 
         config_dict["disabled_command_categories"] = _safe_split(
