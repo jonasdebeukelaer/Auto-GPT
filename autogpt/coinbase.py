@@ -28,7 +28,7 @@ def init_config(config: Config) -> None:
 
 s = Session()
 wallet = []
-last_10_trades = []
+trades = []
 
 
 def update_btc_price_history():
@@ -78,9 +78,9 @@ def get_candles(product_id: str, look_back_days: int = 3) -> List[Dict[str, str]
 
 
 def _update_last_10_trades() -> None:
-    global last_10_trades
-    last_10_trades = get_last_filled_orders()
-    logger.debug(f"last_10_trades updated: {last_10_trades}")
+    global trades
+    trades = get_last_filled_orders()
+    logger.debug(f"last_10_trades updated: {trades}")
 
 
 def get_last_filled_orders(product_id: Union[str, None] = None, limit: int = 10) -> List[str]:
@@ -216,7 +216,7 @@ def update_state():
 # testing
 if __name__ == '__main__':
     print(wallet)
-    print(last_10_trades)
+    print(trades)
 
     # get_trade_price_data()
     # TODO: add some tests finally

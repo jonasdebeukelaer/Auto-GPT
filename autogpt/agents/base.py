@@ -3,6 +3,8 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING, Any, Optional
 
+from autogpt.coinbase import wallet, trades
+
 if TYPE_CHECKING:
     from autogpt.config import AIConfig, Config
 
@@ -196,7 +198,15 @@ class BaseAgent(metaclass=ABCMeta):
         cycle_instruction_tlength = count_message_tokens(
             cycle_instruction_msg, self.llm.name
         )
-        prompt = self.construct_base_prompt(reserve_tokens=cycle_instruction_tlength)
+
+        # Add coinbase price history context
+        wallet_info = Message("user", f"Your coinbase wallet: {wallet}")
+        trade_info = Message("user", f"Your last 10 trades: {trades}")
+
+        prompt = self.construct_base_prompt(
+            append_messages=[wallet_info, trade_info],
+            reserve_tokens=cycle_instruction_tlength
+        )
 
         # ADD user input message ("triggering prompt")
         prompt.append(cycle_instruction_msg)
