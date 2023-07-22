@@ -45,14 +45,21 @@ def update_eth_price_history():
     logger.debug(f"Updated ETH price history: {eth_price_history}")
 
 
-def get_candles(product_id: str, look_back_days: int = 3) -> List[Dict[str, str]]:
+def get_candles(product_id: str, look_back_days: int = 3, granularity_int: int = 6) -> List[Dict[str, str]]:
     if not _is_valid_product_id_format(product_id):
         raise ValueError(f"Invalid product id: {product_id}")
+
+    granularity_map = {
+        1: "ONE_HOUR",
+        2: "TWO_HOUR",
+        6: "SIX_HOUR",
+        24: "ONE_DAY"
+    }
 
     now = datetime.utcnow()
 
     params = {
-        "granularity": "SIX_HOUR",
+        "granularity": granularity_map[granularity_int],
         "start": int((now - timedelta(days=look_back_days)).timestamp()),
         "end": int(now.timestamp()),
     }
@@ -210,8 +217,6 @@ def update_state():
     _update_wallet()
     _update_last_10_trades()
 
-
-# update_state()
 
 # testing
 if __name__ == '__main__':

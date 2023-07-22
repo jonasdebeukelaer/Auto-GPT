@@ -202,13 +202,21 @@ def get_last_10_trades_for_product(product_id: str, agent: Agent) -> str:
             "type": "string",
             "description": "The product id to get info for",
             "required": True,
+        },
+        "look_back_days": {
+            "type": "int",
+            "description": "The number of days to look back (max 20 days)",
+            "required": True,
         }
     },
     _enable_command,
     ENABLE_MSG,
 )
-def get_price_history(product_id: str, agent: Agent) -> str:
-    return f"Price info for last 3 days for {product_id}: {coinbase.get_candles(product_id)}"
+def get_price_history(product_id: str, look_back_days: int, agent: Agent) -> str:
+    if look_back_days < 1 or look_back_days > 20:
+        return f"Invalid number of days to look back ({look_back_days}). Must be in range [1, 20]"
+
+    return f"Price info for for {product_id}: {coinbase.get_candles(product_id, look_back_days=look_back_days)}"
 
 
 # WIP
