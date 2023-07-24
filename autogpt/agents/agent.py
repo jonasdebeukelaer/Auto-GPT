@@ -6,6 +6,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional
 
+from autogpt import coinbase
+
 if TYPE_CHECKING:
     from autogpt.config import AIConfig, Config
     from autogpt.llm.base import ChatModelResponse, ChatSequence
@@ -61,6 +63,10 @@ class Agent(BaseAgent):
         self.log_cycle_handler = LogCycleHandler()
         """LogCycleHandler for structured debug logging."""
 
+        coinbase.init_config(config)
+        coinbase.update_state()
+        """Set coinbase config and update the state of the coinbase API."""
+
     def construct_base_prompt(self, *args, **kwargs) -> ChatSequence:
         if kwargs.get("prepend_messages") is None:
             kwargs["prepend_messages"] = []
@@ -68,6 +74,16 @@ class Agent(BaseAgent):
         # Clock
         kwargs["prepend_messages"].append(
             Message("system", f"The current time and date is {time.strftime('%c')}"),
+        )
+
+        # Custom: add coinbase price history
+        kwargs["prepend_messages"].append(
+            Message("system", f"Your wallet: {coinbase.wallet}")
+        )
+
+        # Custom: add coinbase trade history
+        kwargs["prepend_messages"].append(
+            Message("system", f"Your last 10 trades: {coinbase.trades}")
         )
 
         # Add budget information (if any) to prompt

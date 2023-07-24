@@ -10,7 +10,6 @@ from typing import Optional
 
 from colorama import Fore, Style
 
-from autogpt import coinbase
 from autogpt.agents import Agent, AgentThoughts, CommandArgs, CommandName
 from autogpt.app.configurator import create_config
 from autogpt.app.setup import prompt_user
@@ -237,9 +236,6 @@ def run_interaction_loop(
     ai_config = agent.ai_config
     logger.debug(f"{ai_config.ai_name} System Prompt: {agent.system_prompt}")
 
-    # init coinbase with config
-    coinbase.init_config(config)
-
     cycle_budget = cycles_remaining = _get_cycle_budget(
         config.continuous_mode, config.continuous_limit
     )
@@ -276,11 +272,6 @@ def run_interaction_loop(
 
     while cycles_remaining > 0:
         logger.debug(f"Cycle budget: {cycle_budget}; remaining: {cycles_remaining}")
-
-        #####################
-        # Get price context #
-        #####################
-        coinbase.update_state()
 
         ########
         # Plan #
