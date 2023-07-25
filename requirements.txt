@@ -31,6 +31,8 @@ en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_
 prompt_toolkit>=3.0.38
 pydantic
 inflection
+pyrate-limiter~=2.10.0
+ta-lib~=0.4.0
 
 # web server
 fastapi
@@ -52,7 +54,6 @@ types-Markdown
 types-beautifulsoup4
 types-colorama
 types-Pillow
-pyrate-limiter~=2.10.0
 
 # OpenAI and Generic plugins import
 openapi-python-client==0.13.4
