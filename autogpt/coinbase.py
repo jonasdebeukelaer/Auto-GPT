@@ -1,17 +1,20 @@
 """
 A module that allows you to interact with the Coinbase API.
 """
+import os
 from datetime import datetime, timedelta
 from os.path import join
 from typing import Dict, List, Any, Union
 from urllib.parse import urlparse
 
+import numpy as np
 from regex import regex
 from requests import Session, Request, Response
 import json
 import hmac
 import hashlib
 import time
+import talib
 
 from autogpt.config import Config
 from autogpt.logs import logger
@@ -45,7 +48,13 @@ def update_eth_price_history():
     logger.debug(f"Updated ETH price history: {eth_price_history}")
 
 
-def get_candles(product_id: str, look_back_days: int = 3, granularity_int: int = 6) -> List[Dict[str, str]]:
+def get_candles(
+        product_id: str,
+        look_back_days: int = 3,
+        days_offset: int = 0,
+        granularity: int = 6,
+        keep_stats: list[str] = ["low", "high"]
+) -> List[Dict[str, str]]:
     if not _is_valid_product_id_format(product_id):
         raise ValueError(f"Invalid product id: {product_id}")
 
@@ -59,9 +68,9 @@ def get_candles(product_id: str, look_back_days: int = 3, granularity_int: int =
     now = datetime.utcnow()
 
     params = {
-        "granularity": granularity_map[granularity_int],
+        "granularity": granularity_map[granularity],
         "start": int((now - timedelta(days=look_back_days)).timestamp()),
-        "end": int(now.timestamp()),
+        "end": int(now.timestamp() - timedelta(days=days_offset).total_seconds()),
     }
 
     request = Request("GET", url=join(BASE_URL, "products", product_id, "candles"), params=params)
@@ -74,11 +83,11 @@ def get_candles(product_id: str, look_back_days: int = 3, granularity_int: int =
     candles_raw = resp.json()['candles']
     candles_fmt = []
     for candle in candles_raw:
-        candle_fmt = {
-            'low': to_sig_digits(candle['low'], 4),
-            'high': to_sig_digits(candle['high'], 4),
-            'start_time': datetime.fromtimestamp(int(candle['start'])).strftime("%Y-%m-%d %H:%M:%S")
-        }
+        candle_fmt = {'start_time': datetime.fromtimestamp(int(candle['start'])).strftime("%Y-%m-%d %H:%M:%S")}
+
+        for stat in keep_stats:
+            candle_fmt[stat] = to_sig_digits(candle[stat], 4)
+
         candles_fmt.append(candle_fmt)
 
     return candles_fmt
@@ -117,6 +126,18 @@ def get_last_filled_orders(product_id: Union[str, None] = None, limit: int = 10)
     return filled_orders
 
 
+def get_ema(product_id: str = "BTC-GBP", look_back_days: int = 10, ema_period: int = 50) -> List[float]:
+    btc_prices = []
+
+    max = look_back_days // 5
+    for i in range(max):
+        btc_price_hist = get_candles(product_id, look_back_days=10, days_offset=i, granularity=1, keep_stats=["close"])
+        btc_prices = btc_prices + [float(candle['close']) for candle in btc_price_hist]
+
+    ta_ema = talib.EMA(np.array(btc_prices), timeperiod=ema_period)
+    return to_sig_digits(ta_ema.tolist(), 5)
+
+
 def _update_wallet():
     global wallet
     raw_wallet: list = _get_all_wallets()["accounts"]
@@ -126,11 +147,15 @@ def _update_wallet():
     logger.debug(f"Wallet updated: {wallet}")
 
 
-def to_sig_digits(val: str, n: int) -> str:
-    if type(val) == str and val.replace(".", "").replace("-", "").isnumeric():
-        num = float(val)
-        return '{:g}'.format(float('{:.{p}g}'.format(num, p=n)))
-    return val
+def to_sig_digits(val: Union[str, float, List[float]], n: int) -> Union[str, float, List[float]]:
+    if type(val) == list:
+        return [to_sig_digits(v, n) for v in val]
+    elif type(val) == str:
+        if type(val) == str and val.replace(".", "").replace("-", "").isnumeric():
+            num = float(val)
+            return '{:g}'.format(float('{:.{p}g}'.format(num, p=n)))
+    else:
+        return float('{:.{p}g}'.format(val, p=n))
 
 
 def _add_headers(request: Request) -> Request:
@@ -167,6 +192,7 @@ def _is_valid_product_id_format(product_id: str) -> bool:
     return regex.match(r"^[A-Z]{3,4}-[A-Z]{3,4}$", product_id) is not None
 
 
+# TODO: move to coinbase file
 def create_order(side: str, product_id: str, size: str, reason: str) -> str:
     if not _is_valid_product_id_format:
         return f"Invalid product id: {product_id}. Should have form '<ticker1>-<ticker2>'"
@@ -220,8 +246,13 @@ def update_state():
 
 # testing
 if __name__ == '__main__':
+    # CFG.coinbase_api_key = os.getenv("COINBASE_API_KEY")
+    # CFG.coinbase_api_secret = os.getenv("COINBASE_API_SECRET")
+
     print(wallet)
     print(trades)
 
-    # get_trade_price_data()
+    print(get_ema())
+    print(get_ema(look_back_days=2))
+
     # TODO: add some tests finally
