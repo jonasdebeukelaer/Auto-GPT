@@ -380,7 +380,7 @@ def update_user(
             f"COMMAND = {Fore.CYAN}{remove_ansi_escape(command_name)}{Style.RESET_ALL}  "
             f"ARGUMENTS = {Fore.CYAN}{command_args}{Style.RESET_ALL}",
         )
-    elif command_name.lower().startswith("error"):
+    elif command_name is not None and command_name.lower().startswith("error"):
         logger.typewriter_log(
             "ERROR: ",
             Fore.RED,
