@@ -2,6 +2,7 @@
 import ast
 import json
 import os.path
+import re
 from typing import Any, Literal
 
 from jsonschema import Draft7Validator
@@ -17,6 +18,14 @@ def extract_dict_from_response(response_content: str) -> dict[str, Any]:
     if response_content.startswith("```") and response_content.endswith("```"):
         # Discard the first and last ```, then re-join in case the response naturally included ```
         response_content = "```".join(response_content.split("```")[1:-1])
+
+    if not response_content.startswith("{") and not response_content.endswith("}") and "{" in response_content:
+        logger.debug(f"Invalid JSON received in response. Attempting to extract json only...")
+        match = re.search(r'\{.*\}', response_content)
+        if match:
+            logger.debug(f"Extracted JSON from response")
+            response_content = match.group(0)
+
 
     # response content comes from OpenAI as a Python `str(content_dict)`, literal_eval reverses this
     try:
