@@ -194,7 +194,7 @@ def _is_valid_product_id_format(product_id: str) -> bool:
 
 # TODO: move to coinbase file
 def create_order(side: str, product_id: str, size: str, reason: str) -> str:
-    if not _is_valid_product_id_format:
+    if not _is_valid_product_id_format(product_id):
         return f"Invalid product id: {product_id}. Should have form '<ticker1>-<ticker2>'"
 
     side = side.upper()
@@ -246,8 +246,8 @@ def update_state():
 
 # testing
 if __name__ == '__main__':
-    # CFG.coinbase_api_key = os.getenv("COINBASE_API_KEY")
-    # CFG.coinbase_api_secret = os.getenv("COINBASE_API_SECRET")
+    CFG.coinbase_api_key = os.getenv("COINBASE_API_KEY")
+    CFG.coinbase_api_secret = os.getenv("COINBASE_API_SECRET")
 
     print(wallet)
     print(trades)
