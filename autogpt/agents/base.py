@@ -92,7 +92,7 @@ class BaseAgent(metaclass=ABCMeta):
             max_summary_tlength=summary_max_tlength or self.send_token_limit // 6,
         )
 
-    @limiter.ratelimit('think', delay=True)
+    @limiter.ratelimit('think', delay=True, max_delay=None)
     def think(
         self,
         instruction: Optional[str] = None,
