@@ -231,8 +231,8 @@ def create_order(side: str, product_id: str, size: str, reason: str) -> str:
     if not jsn["success"]:
         return f"Error creating order: {jsn['error_response']}"
 
-    print("Sleeping for 2h after making this trade successfully...")
-    time.sleep(2 * 60 * 60)
+    print("Sleeping for 1h after making this trade successfully...")
+    time.sleep(1 * 60 * 60)
     print("Waking up again")
 
     update_state()

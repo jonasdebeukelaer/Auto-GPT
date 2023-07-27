@@ -146,11 +146,11 @@ def create_sell_order(product_id: str, base_size: str, reason: str, agent: Agent
 
 @command(
     "wait",
-    "Choose to wait and not to take any actions or make any trades for up to 240 minutes",
+    "Choose to wait and not to take any actions or make any trades for up to 6 hours",
     {
-        "minutes": {
-            "type": "int",
-            "description": "The number of minutes to wait [1,240]",
+        "hours": {
+            "type": "float",
+            "description": "The number of hours to wait [0,6]",
             "required": True,
         },
         "reason": {
@@ -162,16 +162,17 @@ def create_sell_order(product_id: str, base_size: str, reason: str, agent: Agent
     _enable_command,
     ENABLE_MSG,
 )
-def wait(minutes: int, reason: str, agent: Agent) -> str:
-    if minutes < 1 or minutes > 240:
-        return "Invalid number of minutes to wait. Must be in range [1, 240]"
+def wait(hours: float, reason: str, agent: Agent) -> str:
+    if hours < 0 or hours > 6:
+        return "Invalid number of minutes to wait. Must be in range [0" \
+               ", 6]"
 
-    print(f"sleeping for {minutes} minutes. Reason: '{reason}'.")
-    time.sleep(minutes * 60)
+    print(f"sleeping for {hours} hours. Reason: '{reason}'.")
+    time.sleep(hours * 60 * 60)
     print("Waking up again")
 
     coinbase.update_state()
-    return f"Finished waiting for {minutes} minutes"
+    return f"Finished waiting for {hours} hours"
 
 
 @command(
