@@ -86,6 +86,11 @@ class Agent(BaseAgent):
             Message("system", f"Your last 10 trades: {coinbase.trades}")
         )
 
+        # Custom: add coinbase trading costs
+        kwargs["prepend_messages"].append(
+            Message("system", "Each trade costs 0.5% of the trade value.")
+        )
+
         # Add budget information (if any) to prompt
         api_manager = ApiManager()
         if api_manager.get_total_budget() > 0.0:
