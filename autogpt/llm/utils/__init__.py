@@ -22,6 +22,9 @@ from ..providers.openai import (
     count_openai_functions_tokens,
 )
 from .token_counter import *
+from ...utils import init_openai_request_limiter
+
+limiter = init_openai_request_limiter()
 
 
 def call_ai_function(
@@ -93,6 +96,7 @@ def create_text_completion(
 
 
 # Overly simple abstraction until we create something better
+@limiter.ratelimit('chat_completion', delay=True, max_delay=None)
 def create_chat_completion(
     prompt: ChatSequence,
     config: Config,

@@ -3,8 +3,6 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING, Any, Optional
 
-from autogpt.utils import init_think_rate_limiter
-
 if TYPE_CHECKING:
     from autogpt.config import AIConfig, Config
 
@@ -20,8 +18,6 @@ from autogpt.prompts.prompt import DEFAULT_TRIGGERING_PROMPT
 CommandName = str
 CommandArgs = dict[str, str]
 AgentThoughts = dict[str, Any]
-
-limiter = init_think_rate_limiter()
 
 
 class BaseAgent(metaclass=ABCMeta):
@@ -92,7 +88,6 @@ class BaseAgent(metaclass=ABCMeta):
             max_summary_tlength=summary_max_tlength or self.send_token_limit // 6,
         )
 
-    @limiter.ratelimit('think', delay=True, max_delay=None)
     def think(
         self,
         instruction: Optional[str] = None,
@@ -119,6 +114,7 @@ class BaseAgent(metaclass=ABCMeta):
             else None,
         )
         self.cycle_count += 1
+        logger.info(f"Think count: {self.cycle_count}")
 
         return self.on_response(raw_response, prompt, instruction)
 

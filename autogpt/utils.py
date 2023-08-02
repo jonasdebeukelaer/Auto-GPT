@@ -170,7 +170,7 @@ def get_legal_warning() -> str:
     return legal_text
 
 
-def init_think_rate_limiter() -> Limiter:
+def init_openai_request_limiter() -> Limiter:
     hourly_rate = RequestRate(10, Duration.HOUR)
     daily_rate = RequestRate(50, Duration.DAY)
     monthly_rate = RequestRate(1500, Duration.MONTH)
