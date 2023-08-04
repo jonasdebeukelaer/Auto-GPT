@@ -1,0 +1,14 @@
+.*
+chrome_settings/profile/
+docs/
+milvus/
+tests/
+venv/
+volumes/
+logs/
+.env
+ai_settings.yaml
+*.md
+*.bat
+*.png
+LICENSE
