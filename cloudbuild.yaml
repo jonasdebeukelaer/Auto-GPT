@@ -1,3 +1,64 @@
 steps:
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'eu.gcr.io/$PROJECT_ID/crypto-gpt', '-f', 'Dockerfile.gcloud', '.']
+  # Build the container image and push it with Kaniko
+  - id: "build image"
+    name: "gcr.io/kaniko-project/executor:latest"
+    waitFor: ["-"]
+    args:
+      - "--dockerfile=Dockerfile.gcloud"
+      - "--context=."
+      - "--cache=true"
+      - "--cache-ttl=168h"
+      - "--destination=eu.gcr.io/$PROJECT_ID/crypto-gpt:latest"
+
+  # Deploy Minio instance to Cloud Run
+  - id: "deploy minio service"
+    name: "gcr.io/cloud-builders/gcloud"
+    waitFor: ["-"]
+    args:
+      - "run"
+      - "deploy"
+      - "minio"
+      - "--image"
+      - "bitnami/minio:2023.7.18"
+      - "--region"
+      - "europe-west1"
+      - "--platform"
+      - "managed"
+      - "--allow-unauthenticated"
+      - "--port"
+      - "9000"
+      - "--cpu"
+      - "1"
+      - "--memory"
+      - "2Gi"
+      - "--set-env-vars=MINIO_ROOT_USER=crypto-gpt-user"
+      - "--update-secrets=MINIO_ROOT_PASSWORD=crypto-gpt-minio-password:1"
+
+  # Get the Minio instance URL
+  - id: 'get service url'
+    name: 'gcr.io/cloud-builders/gcloud'
+    waitFor: [ 'build image', 'deploy minio service' ]
+    entrypoint: 'bash'
+    args:
+      - -c
+      - |
+        echo $(gcloud run services describe minio --region=europe-west1 --platform managed --format 'value(status.url)') > /workspace/minio_url.txt
+
+  # Deploy the crypto-gpt image to Cloud Run
+  - id: 'deploy crypto gpt service'
+    name: 'gcr.io/cloud-builders/gcloud'
+    waitFor: [ 'build image', 'get service url' ]
+    entrypoint: 'bash'
+    args:
+      - -c
+      - |
+        gcloud run deploy crypto-gpt \
+        --image eu.gcr.io/$PROJECT_ID/crypto-gpt:latest \
+        --region europe-west1 \
+        --platform managed \
+        --no-allow-unauthenticated \
+        --cpu 1 \
+        --memory 2Gi \
+        --set-secrets=/app/mnt1/ai-settings.yaml=crypto-gpt-ai-settings:1,/app/mnt2/secrets.env=crypto-gpt-env-secrets:4,MINIO_PASSWORD=crypto-gpt-minio-password:1 \
+        --set-env-vars=MINIO_INSTANCE_URL=$(cat /workspace/minio_url.txt)
+  

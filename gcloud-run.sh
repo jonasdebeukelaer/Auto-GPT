@@ -1,23 +1,20 @@
 #!/bin/bash
+set -e
 
 echo "Running crypto-gpt..."
 
 echo ""
-echo "setup gcloud"
-gcloud auth login
-
+echo "Load secrets..."
+cp .env.base .env
+cat ./mnt2/secrets.env >> .env
 
 echo ""
-echo "Exporting secrets to env vars..."
-# load secrets to env
-while IFS= read -r line
-do
-  echo "loading secret: $line" | cut -d '=' -f 1
-  export "${line?}"
-done < ./secrets.env
-echo "All secrets exported!"
+echo "Start dummy server..."
+python dummy_server.py 8080 &
+
 echo ""
+echo "Start application..."
+python -m autogpt --ai-settings mnt1/ai-settings.yaml --skip-news --continuous
 
-python -m autogpt --ai-settings ai_settings.yaml --skip-news --continuous
-
+echo ""
 echo "Stopped gracefully!"

@@ -5,7 +5,7 @@ milvus/
 tests/
 venv/
 volumes/
-logs/
+/logs/
 .env
 ai_settings.yaml
 *.md

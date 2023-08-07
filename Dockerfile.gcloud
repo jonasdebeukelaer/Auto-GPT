@@ -45,8 +45,9 @@ FROM autogpt-release AS auto-gpt
 
 COPY gcloud-run.sh .
 # TODO: move
-COPY heroku/env .env
+COPY heroku/env .env.base
 COPY heroku/h_plugins_config.yaml .
 COPY heroku/prompt_settings.yaml .
+COPY heroku/dummy_server.py .
 
 CMD ["./gcloud-run.sh"]
