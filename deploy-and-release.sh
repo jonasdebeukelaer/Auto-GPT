@@ -11,9 +11,8 @@ if [[ $(gcloud auth list --filter=status:ACTIVE --format="value(account)") == ""
 fi
 
 gcloud config set project $PROJECT_ID
-gcloud config set run/region $REGION
 
 # Submit a new build to Cloud Build
-gcloud builds submit --config cloudbuild.yaml .
+gcloud builds submit --config cloudbuild.yaml . --async --region $REGION
 
 echo "Deployment completed successfully."
