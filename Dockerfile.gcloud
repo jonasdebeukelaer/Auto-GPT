@@ -43,11 +43,10 @@ ONBUILD COPY chrome_settings ./chrome_settings
 
 FROM autogpt-release AS auto-gpt
 
-COPY gcloud-run.sh .
-# TODO: move
-COPY heroku/env .env.base
-COPY heroku/h_plugins_config.yaml .
-COPY heroku/prompt_settings.yaml .
-COPY heroku/dummy_server.py .
+COPY gcloud/run.sh .
+COPY gcloud/env .env.base
+COPY gcloud/gcloud_plugins_config.yaml .
+COPY gcloud/prompt_settings.yaml .
+COPY gcloud/dummy_server.py .
 
-CMD ["./gcloud-run.sh"]
+CMD ["./run.sh"]

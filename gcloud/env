@@ -37,7 +37,7 @@ PROMPT_SETTINGS_FILE=prompt_settings.yaml
 ## OPENAI_API_KEY - OpenAI API Key (Example: my-openai-api-key)
 ## TEMPERATURE - Sets temperature in OpenAI (Default: 0)
 ## USE_AZURE - Use Azure OpenAI or not (Default: False)
-# OPENAI_API_KEY=(via heroku secrets)
+# OPENAI_API_KEY=(via gcloud secrets)
 TEMPERATURE=0
 USE_AZURE=False
 
@@ -82,7 +82,7 @@ MEMORY_BACKEND=json_file
 ## MILVUS_COLLECTION - Milvus collection, change it if you want to start a new memory and retain the old memory.
 #MILVUS_ADDR=https://in01-47c8bc2f59227e3.aws-us-east-2.vectordb.zillizcloud.com:19542
 #MILVUS_USERNAME=db_admin
-## MILVUS_PASSWORD=(via heroku secrets)
+## MILVUS_PASSWORD=(via gcloud secrets)
 #MILVUS_SECURE=True
 #MILVUS_COLLECTION=autogpt
 
@@ -104,8 +104,8 @@ USE_WEB_BROWSER=chrome
 ### GOOGLE
 ## GOOGLE_API_KEY - Google API key (Example: my-google-api-key)
 ## CUSTOM_SEARCH_ENGINE_ID - Custom search engine ID (Example: my-custom-search-engine-id)
-#GOOGLE_API_KEY=(via heroku secrets)
-#CUSTOM_SEARCH_ENGINE_ID=(via heroku secrets)
+#GOOGLE_API_KEY=(via gcloud secrets)
+#CUSTOM_SEARCH_ENGINE_ID=(via gcloud secrets)
 
 ################################################################################
 ### COINBASE
@@ -114,5 +114,5 @@ USE_WEB_BROWSER=chrome
 # secondary account
 COINBASE_ENABLED=true
 COINBASE_IS_SANDBOX=false
-# COINBASE_API_KEY=(via heroku secrets)
-# COINBASE_API_SECRET=(via heroku secrets)
+# COINBASE_API_KEY=(via gcloud secrets)
+# COINBASE_API_SECRET=(via gcloud secrets)
