@@ -89,6 +89,11 @@ class Agent(BaseAgent):
             Message("system", "Each trade costs 0.5% of the trade value.")
         )
 
+        # Custom: add openai query cost
+        kwargs["prepend_messages"].append(
+            Message("system", "Each decision call costs £0.15")
+        )
+
         # Add budget information (if any) to prompt
         api_manager = ApiManager()
         if api_manager.get_total_budget() > 0.0:

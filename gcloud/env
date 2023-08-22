@@ -58,7 +58,7 @@ FAST_LLM_MODEL=gpt-3.5-turbo-0613
 ## SMART_TOKEN_LIMIT - Smart token limit for OpenAI (Default: 8000)
 ## When using --gpt3only this needs to be set to 4000.
 # FAST_TOKEN_LIMIT=4000
-SMART_TOKEN_LIMIT=6000
+SMART_TOKEN_LIMIT=4000
 
 ################################################################################
 ### MEMORY
